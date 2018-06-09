@@ -6,7 +6,7 @@ Ticker : BET
 
 Coin Type : POW + POS + MN 
 
-Algorithm : C11
+Algorithm : X11
 
 Block Time : 60 Sec Approx.
 
