@@ -9,11 +9,10 @@
 #include "guiutil.h"
 
 #include "sync.h"
-#include "util.h"
+#include "utiltime.h"
 
 #include <QDebug>
 #include <QList>
-#include <QTime>
 
 bool BannedNodeLessThan::operator()(const CCombinedBan& left, const CCombinedBan& right) const
 {
@@ -49,7 +48,8 @@ public:
     void refreshBanlist()
     {
         banmap_t banMap;
-        CNode::GetBanned(banMap);
+        if(g_connman)
+            g_connman->GetBanned(banMap);
 
         cachedBanlist.clear();
 #if QT_VERSION >= 0x040700
@@ -87,12 +87,17 @@ BanTableModel::BanTableModel(ClientModel *parent) :
     clientModel(parent)
 {
     columns << tr("IP/Netmask") << tr("Banned Until");
-    priv = new BanTablePriv();
+    priv.reset(new BanTablePriv());
     // default to unsorted
     priv->sortColumn = -1;
 
     // load initial data
     refresh();
+}
+
+BanTableModel::~BanTableModel()
+{
+    // Intentionally left empty
 }
 
 int BanTableModel::rowCount(const QModelIndex &parent) const
@@ -104,7 +109,7 @@ int BanTableModel::rowCount(const QModelIndex &parent) const
 int BanTableModel::columnCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    return columns.length();;
+    return columns.length();
 }
 
 QVariant BanTableModel::data(const QModelIndex &index, int role) const

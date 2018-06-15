@@ -632,26 +632,41 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+USE_ASM_ARM_FALSE
+USE_ASM_ARM_TRUE
+USE_EXTERNAL_ASM_FALSE
+USE_EXTERNAL_ASM_TRUE
+USE_JNI_FALSE
+USE_JNI_TRUE
 ENABLE_MODULE_RECOVERY_FALSE
 ENABLE_MODULE_RECOVERY_TRUE
-ENABLE_MODULE_SCHNORR_FALSE
-ENABLE_MODULE_SCHNORR_TRUE
 ENABLE_MODULE_ECDH_FALSE
 ENABLE_MODULE_ECDH_TRUE
 USE_ECMULT_STATIC_PRECOMPUTATION_FALSE
 USE_ECMULT_STATIC_PRECOMPUTATION_TRUE
 USE_BENCHMARK_FALSE
 USE_BENCHMARK_TRUE
+USE_EXHAUSTIVE_TESTS_FALSE
+USE_EXHAUSTIVE_TESTS_TRUE
 USE_TESTS_FALSE
 USE_TESTS_TRUE
+ENABLE_COVERAGE_FALSE
+ENABLE_COVERAGE_TRUE
 SECP_TEST_INCLUDES
 SECP_TEST_LIBS
 SECP_LIBS
 SECP_INCLUDES
+JNI_INCLUDES
+_ACJNI_JAVAC
 CRYPTO_LIBS
 CRYPTO_CFLAGS
 PORT
 BREW
+am__fastdepCCAS_FALSE
+am__fastdepCCAS_TRUE
+CCASDEPMODE
+CCASFLAGS
+CCAS
 LDFLAGS_FOR_BUILD
 CPPFLAGS_FOR_BUILD
 CFLAGS_FOR_BUILD
@@ -791,13 +806,16 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 enable_benchmark
+enable_coverage
 enable_tests
+enable_openssl_tests
 enable_experimental
+enable_exhaustive_tests
 enable_endomorphism
 enable_ecmult_static_precomputation
 enable_module_ecdh
-enable_module_schnorr
 enable_module_recovery
+enable_jni
 with_field
 with_bignum
 with_scalar
@@ -816,6 +834,8 @@ CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+CCAS
+CCASFLAGS
 CRYPTO_CFLAGS
 CRYPTO_LIBS'
 
@@ -1459,16 +1479,22 @@ Optional Features:
                           speeds up one-time build
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-benchmark      compile benchmark (default is no)
+  --enable-coverage       enable compiler flags to support kcov coverage
+                          analysis
   --enable-tests          compile tests (default is yes)
+  --enable-openssl-tests  enable OpenSSL tests, if OpenSSL is available
+                          (default is auto)
   --enable-experimental   allow experimental configure options (default is no)
+  --enable-exhaustive-tests
+                          compile exhaustive tests (default is yes)
   --enable-endomorphism   enable endomorphism (default is no)
   --enable-ecmult-static-precomputation
                           enable precomputed ecmult table for signing (default
                           is yes)
   --enable-module-ecdh    enable ECDH shared secret computation (experimental)
-  --enable-module-schnorr enable Schnorr signature module (experimental)
   --enable-module-recovery
                           enable ECDSA pubkey recovery module (default is no)
+  --enable-jni            enable libsecp256k1_jni (default is auto)
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1487,8 +1513,8 @@ Optional Packages:
                           Specify Bignum Implementation. Default is auto
   --with-scalar=64bit|32bit|auto
                           Specify scalar implementation. Default is auto
-  --with-asm=x86_64|no|auto
-Specify assembly optimizations to use. Default is auto
+  --with-asm=x86_64|arm|no|auto
+Specify assembly optimizations to use. Default is auto (experimental: arm)
 
 
 Some influential environment variables:
@@ -1507,6 +1533,8 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  CCAS        assembler compiler command (defaults to CC)
+  CCASFLAGS   assembler compiler flags (defaults to CFLAGS)
   CRYPTO_CFLAGS
               C compiler flags for CRYPTO, overriding pkg-config
   CRYPTO_LIBS linker flags for CRYPTO, overriding pkg-config
@@ -13418,7 +13446,7 @@ BUILD_OBJEXT=$ac_build_objext
 
 
 if test "x$CFLAGS" = "x"; then
-  CFLAGS="-O3 -g"
+  CFLAGS="-g"
 fi
 
 
@@ -13517,6 +13545,139 @@ fi
 if test x"$ac_cv_prog_cc_c89" = x"no"; then
   as_fn_error $? "c89 compiler support required" "$LINENO" 5
 fi
+# By default we simply use the C compiler to build assembly code.
+
+test "${CCAS+set}" = set || CCAS=$CC
+test "${CCASFLAGS+set}" = set || CCASFLAGS=$CFLAGS
+
+
+
+depcc="$CCAS"   am_compiler_list=
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking dependency style of $depcc" >&5
+$as_echo_n "checking dependency style of $depcc... " >&6; }
+if ${am_cv_CCAS_dependencies_compiler_type+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
+  # We make a subdir and do the tests there.  Otherwise we can end up
+  # making bogus files that we don't know about and never remove.  For
+  # instance it was reported that on HP-UX the gcc test will end up
+  # making a dummy file named 'D' -- because '-MD' means "put the output
+  # in D".
+  rm -rf conftest.dir
+  mkdir conftest.dir
+  # Copy depcomp to subdir because otherwise we won't find it if we're
+  # using a relative directory.
+  cp "$am_depcomp" conftest.dir
+  cd conftest.dir
+  # We will build objects and dependencies in a subdirectory because
+  # it helps to detect inapplicable dependency modes.  For instance
+  # both Tru64's cc and ICC support -MD to output dependencies as a
+  # side effect of compilation, but ICC will put the dependencies in
+  # the current directory while Tru64 will put them in the object
+  # directory.
+  mkdir sub
+
+  am_cv_CCAS_dependencies_compiler_type=none
+  if test "$am_compiler_list" = ""; then
+     am_compiler_list=`sed -n 's/^#*\([a-zA-Z0-9]*\))$/\1/p' < ./depcomp`
+  fi
+  am__universal=false
+
+
+  for depmode in $am_compiler_list; do
+    # Setup a source with many dependencies, because some compilers
+    # like to wrap large dependency lists on column 80 (with \), and
+    # we should not choose a depcomp mode which is confused by this.
+    #
+    # We need to recreate these files for each test, as the compiler may
+    # overwrite some of them when testing with obscure command lines.
+    # This happens at least with the AIX C compiler.
+    : > sub/conftest.c
+    for i in 1 2 3 4 5 6; do
+      echo '#include "conftst'$i'.h"' >> sub/conftest.c
+      # Using ": > sub/conftst$i.h" creates only sub/conftst1.h with
+      # Solaris 10 /bin/sh.
+      echo '/* dummy */' > sub/conftst$i.h
+    done
+    echo "${am__include} ${am__quote}sub/conftest.Po${am__quote}" > confmf
+
+    # We check with '-c' and '-o' for the sake of the "dashmstdout"
+    # mode.  It turns out that the SunPro C++ compiler does not properly
+    # handle '-M -o', and we need to detect this.  Also, some Intel
+    # versions had trouble with output in subdirs.
+    am__obj=sub/conftest.${OBJEXT-o}
+    am__minus_obj="-o $am__obj"
+    case $depmode in
+    gcc)
+      # This depmode causes a compiler race in universal mode.
+      test "$am__universal" = false || continue
+      ;;
+    nosideeffect)
+      # After this tag, mechanisms are not by side-effect, so they'll
+      # only be used when explicitly requested.
+      if test "x$enable_dependency_tracking" = xyes; then
+	continue
+      else
+	break
+      fi
+      ;;
+    msvc7 | msvc7msys | msvisualcpp | msvcmsys)
+      # This compiler won't grok '-c -o', but also, the minuso test has
+      # not run yet.  These depmodes are late enough in the game, and
+      # so weak that their functioning should not be impacted.
+      am__obj=conftest.${OBJEXT-o}
+      am__minus_obj=
+      ;;
+    none) break ;;
+    esac
+    if depmode=$depmode \
+       source=sub/conftest.c object=$am__obj \
+       depfile=sub/conftest.Po tmpdepfile=sub/conftest.TPo \
+       $SHELL ./depcomp $depcc -c $am__minus_obj sub/conftest.c \
+         >/dev/null 2>conftest.err &&
+       grep sub/conftst1.h sub/conftest.Po > /dev/null 2>&1 &&
+       grep sub/conftst6.h sub/conftest.Po > /dev/null 2>&1 &&
+       grep $am__obj sub/conftest.Po > /dev/null 2>&1 &&
+       ${MAKE-make} -s -f confmf > /dev/null 2>&1; then
+      # icc doesn't choke on unknown options, it will just issue warnings
+      # or remarks (even with -Werror).  So we grep stderr for any message
+      # that says an option was ignored or not supported.
+      # When given -MP, icc 7.0 and 7.1 complain thusly:
+      #   icc: Command line warning: ignoring option '-M'; no argument required
+      # The diagnosis changed in icc 8.0:
+      #   icc: Command line remark: option '-MP' not supported
+      if (grep 'ignoring option' conftest.err ||
+          grep 'not supported' conftest.err) >/dev/null 2>&1; then :; else
+        am_cv_CCAS_dependencies_compiler_type=$depmode
+        break
+      fi
+    fi
+  done
+
+  cd ..
+  rm -rf conftest.dir
+else
+  am_cv_CCAS_dependencies_compiler_type=none
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $am_cv_CCAS_dependencies_compiler_type" >&5
+$as_echo "$am_cv_CCAS_dependencies_compiler_type" >&6; }
+CCASDEPMODE=depmode=$am_cv_CCAS_dependencies_compiler_type
+
+ if
+  test "x$enable_dependency_tracking" != xno \
+  && test "$am_cv_CCAS_dependencies_compiler_type" = gcc3; then
+  am__fastdepCCAS_TRUE=
+  am__fastdepCCAS_FALSE='#'
+else
+  am__fastdepCCAS_TRUE='#'
+  am__fastdepCCAS_FALSE=
+fi
+
+
 
 case $host_os in
   *darwin*)
@@ -13672,6 +13833,14 @@ else
 fi
 
 
+# Check whether --enable-coverage was given.
+if test "${enable_coverage+set}" = set; then :
+  enableval=$enable_coverage; enable_coverage=$enableval
+else
+  enable_coverage=no
+fi
+
+
 # Check whether --enable-tests was given.
 if test "${enable_tests+set}" = set; then :
   enableval=$enable_tests; use_tests=$enableval
@@ -13680,11 +13849,27 @@ else
 fi
 
 
+# Check whether --enable-openssl_tests was given.
+if test "${enable_openssl_tests+set}" = set; then :
+  enableval=$enable_openssl_tests; enable_openssl_tests=$enableval
+else
+  enable_openssl_tests=auto
+fi
+
+
 # Check whether --enable-experimental was given.
 if test "${enable_experimental+set}" = set; then :
   enableval=$enable_experimental; use_experimental=$enableval
 else
   use_experimental=no
+fi
+
+
+# Check whether --enable-exhaustive_tests was given.
+if test "${enable_exhaustive_tests+set}" = set; then :
+  enableval=$enable_exhaustive_tests; use_exhaustive_tests=$enableval
+else
+  use_exhaustive_tests=yes
 fi
 
 
@@ -13700,7 +13885,7 @@ fi
 if test "${enable_ecmult_static_precomputation+set}" = set; then :
   enableval=$enable_ecmult_static_precomputation; use_ecmult_static_precomputation=$enableval
 else
-  use_ecmult_static_precomputation=yes
+  use_ecmult_static_precomputation=auto
 fi
 
 
@@ -13712,19 +13897,19 @@ else
 fi
 
 
-# Check whether --enable-module_schnorr was given.
-if test "${enable_module_schnorr+set}" = set; then :
-  enableval=$enable_module_schnorr; enable_module_schnorr=$enableval
-else
-  enable_module_schnorr=no
-fi
-
-
 # Check whether --enable-module_recovery was given.
 if test "${enable_module_recovery+set}" = set; then :
   enableval=$enable_module_recovery; enable_module_recovery=$enableval
 else
   enable_module_recovery=no
+fi
+
+
+# Check whether --enable-jni was given.
+if test "${enable_jni+set}" = set; then :
+  enableval=$enable_jni; use_jni=$enableval
+else
+  use_jni=auto
 fi
 
 
@@ -13793,6 +13978,65 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
+if test x"$enable_coverage" = x"yes"; then
+
+$as_echo "#define COVERAGE 1" >>confdefs.h
+
+    CFLAGS="$CFLAGS -O0 --coverage"
+    LDFLAGS="--coverage"
+else
+    CFLAGS="$CFLAGS -O3"
+fi
+
+if test x"$use_ecmult_static_precomputation" != x"no"; then
+  save_cross_compiling=$cross_compiling
+  cross_compiling=no
+  TEMP_CC="$CC"
+  CC="$CC_FOR_BUILD"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking native compiler: ${CC_FOR_BUILD}" >&5
+$as_echo_n "checking native compiler: ${CC_FOR_BUILD}... " >&6; }
+  if test "$cross_compiling" = yes; then :
+  else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+return 0
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  working_native_cc=yes
+else
+  working_native_cc=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+  CC="$TEMP_CC"
+  cross_compiling=$save_cross_compiling
+
+  if test x"$working_native_cc" = x"no"; then
+    set_precomp=no
+    if test x"$use_ecmult_static_precomputation" = x"yes";  then
+      as_fn_error $? "${CC_FOR_BUILD} does not produce working binaries. Please set CC_FOR_BUILD" "$LINENO" 5
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${CC_FOR_BUILD} does not produce working binaries. Please set CC_FOR_BUILD" >&5
+$as_echo "${CC_FOR_BUILD} does not produce working binaries. Please set CC_FOR_BUILD" >&6; }
+    fi
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
+$as_echo "ok" >&6; }
+    set_precomp=yes
+  fi
+else
+  set_precomp=no
+fi
+
 if test x"$req_asm" = x"auto"; then
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for x86_64 assembly availability" >&5
@@ -13806,7 +14050,7 @@ main ()
 {
 
   uint64_t a = 11, tmp;
-  __asm__ __volatile__("movq SECP_64BIT_ASM_CHECKx100000000,%1; mulq %%rsi" : "+a"(a) : "S"(tmp) : "cc", "%rdx");
+  __asm__ __volatile__("movq \$0x100000000,%1; mulq %%rsi" : "+a"(a) : "S"(tmp) : "cc", "%rdx");
 
   ;
   return 0;
@@ -13843,7 +14087,7 @@ main ()
 {
 
   uint64_t a = 11, tmp;
-  __asm__ __volatile__("movq SECP_64BIT_ASM_CHECKx100000000,%1; mulq %%rsi" : "+a"(a) : "S"(tmp) : "cc", "%rdx");
+  __asm__ __volatile__("movq \$0x100000000,%1; mulq %%rsi" : "+a"(a) : "S"(tmp) : "cc", "%rdx");
 
   ;
   return 0;
@@ -13861,6 +14105,8 @@ $as_echo "$has_64bit_asm" >&6; }
     if test x"$has_64bit_asm" != x"yes"; then
       as_fn_error $? "x86_64 assembly optimization requested but not available" "$LINENO" 5
     fi
+    ;;
+  arm)
     ;;
   no)
     ;;
@@ -14074,11 +14320,16 @@ fi
 fi
 
 # select assembly optimization
+use_external_asm=no
+
 case $set_asm in
 x86_64)
 
 $as_echo "#define USE_ASM_X86_64 1" >>confdefs.h
 
+  ;;
+arm)
+  use_external_asm=yes
   ;;
 no)
   ;;
@@ -14339,6 +14590,10 @@ main ()
     ECDSA_sign(0, NULL, 0, NULL, NULL, eckey);
     ECDSA_verify(0, NULL, 0, NULL, 0, eckey);
     EC_KEY_free(eckey);
+    ECDSA_SIG *sig_openssl;
+    sig_openssl = ECDSA_SIG_new();
+    (void)sig_openssl->r;
+    ECDSA_SIG_free(sig_openssl);
 
   ;
   return 0;
@@ -14355,18 +14610,185 @@ $as_echo "$has_openssl_ec" >&6; }
 fi
 
   if test x"$has_openssl_ec" = x"yes"; then
+    if test x"$enable_openssl_tests" != x"no"; then
 
 $as_echo "#define ENABLE_OPENSSL_TESTS 1" >>confdefs.h
 
-    SECP_TEST_INCLUDES="$SSL_CFLAGS $CRYPTO_CFLAGS"
-    SECP_TEST_LIBS="$CRYPTO_LIBS"
+      SECP_TEST_INCLUDES="$SSL_CFLAGS $CRYPTO_CFLAGS"
+      SECP_TEST_LIBS="$CRYPTO_LIBS"
 
-    case $host in
-    *mingw*)
-      SECP_TEST_LIBS="$SECP_TEST_LIBS -lgdi32"
-      ;;
-    esac
+      case $host in
+      *mingw*)
+        SECP_TEST_LIBS="$SECP_TEST_LIBS -lgdi32"
+        ;;
+      esac
+    fi
+  else
+    if test x"$enable_openssl_tests" = x"yes"; then
+      as_fn_error $? "OpenSSL tests requested but OpenSSL with EC support is not available" "$LINENO" 5
+    fi
+  fi
+else
+  if test x"$enable_openssl_tests" = x"yes"; then
+    as_fn_error $? "OpenSSL tests requested but tests are not enabled" "$LINENO" 5
+  fi
+fi
 
+if test x"$use_jni" != x"no"; then
+
+
+JNI_INCLUDE_DIRS=""
+
+if test "x$JAVA_HOME" != x; then
+	_JTOPDIR="$JAVA_HOME"
+else
+	if test "x$JAVAC" = x; then
+		JAVAC=javac
+	fi
+	# Extract the first word of "$JAVAC", so it can be a program name with args.
+set dummy $JAVAC; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path__ACJNI_JAVAC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $_ACJNI_JAVAC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path__ACJNI_JAVAC="$_ACJNI_JAVAC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path__ACJNI_JAVAC="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path__ACJNI_JAVAC" && ac_cv_path__ACJNI_JAVAC="no"
+  ;;
+esac
+fi
+_ACJNI_JAVAC=$ac_cv_path__ACJNI_JAVAC
+if test -n "$_ACJNI_JAVAC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $_ACJNI_JAVAC" >&5
+$as_echo "$_ACJNI_JAVAC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	if test "x$_ACJNI_JAVAC" = xno; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: cannot find JDK; try setting \$JAVAC or \$JAVA_HOME" >&5
+$as_echo "$as_me: WARNING: cannot find JDK; try setting \$JAVAC or \$JAVA_HOME" >&2;}
+	fi
+
+# find the include directory relative to the javac executable
+_cur=""$_ACJNI_JAVAC""
+while ls -ld "$_cur" 2>/dev/null | grep " -> " >/dev/null; do
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking symlink for $_cur" >&5
+$as_echo_n "checking symlink for $_cur... " >&6; }
+        _slink=`ls -ld "$_cur" | sed 's/.* -> //'`
+        case "$_slink" in
+        /*) _cur="$_slink";;
+        # 'X' avoids triggering unwanted echo options.
+        *) _cur=`echo "X$_cur" | sed -e 's/^X//' -e 's:[^/]*$::'`"$_slink";;
+        esac
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $_cur" >&5
+$as_echo "$_cur" >&6; }
+done
+_ACJNI_FOLLOWED="$_cur"
+
+	_JTOPDIR=`echo "$_ACJNI_FOLLOWED" | sed -e 's://*:/:g' -e 's:/[^/]*$::'`
+fi
+
+case "$host_os" in
+        darwin*)        _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[^/]*$::'`
+                        _JINC="$_JTOPDIR/Headers";;
+        *)              _JINC="$_JTOPDIR/include";;
+esac
+$as_echo "$as_me:${as_lineno-$LINENO}: _JTOPDIR=$_JTOPDIR" >&5
+$as_echo "$as_me:${as_lineno-$LINENO}: _JINC=$_JINC" >&5
+
+# On Mac OS X 10.6.4, jni.h is a symlink:
+# /System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers/jni.h
+# -> ../../CurrentJDK/Headers/jni.h.
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking jni headers" >&5
+$as_echo_n "checking jni headers... " >&6; }
+if ${ac_cv_jni_header_path+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+if test -f "$_JINC/jni.h"; then
+  ac_cv_jni_header_path="$_JINC"
+  JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $ac_cv_jni_header_path"
+else
+  _JTOPDIR=`echo "$_JTOPDIR" | sed -e 's:/[^/]*$::'`
+  if test -f "$_JTOPDIR/include/jni.h"; then
+    ac_cv_jni_header_path="$_JTOPDIR/include"
+    JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $ac_cv_jni_header_path"
+  else
+    ac_cv_jni_header_path=none
+  fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_jni_header_path" >&5
+$as_echo "$ac_cv_jni_header_path" >&6; }
+
+
+
+# get the likely subdirectories for system specific java includes
+case "$host_os" in
+bsdi*)          _JNI_INC_SUBDIRS="bsdos";;
+darwin*)        _JNI_INC_SUBDIRS="darwin";;
+freebsd*)       _JNI_INC_SUBDIRS="freebsd";;
+linux*)         _JNI_INC_SUBDIRS="linux genunix";;
+osf*)           _JNI_INC_SUBDIRS="alpha";;
+solaris*)       _JNI_INC_SUBDIRS="solaris";;
+mingw*)		_JNI_INC_SUBDIRS="win32";;
+cygwin*)	_JNI_INC_SUBDIRS="win32";;
+*)              _JNI_INC_SUBDIRS="genunix";;
+esac
+
+if test "x$ac_cv_jni_header_path" != "xnone"; then
+  # add any subdirectories that are present
+  for JINCSUBDIR in $_JNI_INC_SUBDIRS
+  do
+      if test -d "$_JTOPDIR/include/$JINCSUBDIR"; then
+           JNI_INCLUDE_DIRS="$JNI_INCLUDE_DIRS $_JTOPDIR/include/$JINCSUBDIR"
+      fi
+  done
+fi
+
+  have_jni_dependencies=yes
+  if test x"$enable_module_ecdh" = x"no"; then
+    have_jni_dependencies=no
+  fi
+  if test "x$JNI_INCLUDE_DIRS" = "x"; then
+    have_jni_dependencies=no
+  fi
+  if test "x$have_jni_dependencies" = "xno"; then
+    if test x"$use_jni" = x"yes"; then
+      as_fn_error $? "jni support explicitly requested but headers/dependencies were not found. Enable ECDH and try again." "$LINENO" 5
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: jni headers/dependencies not found. jni support disabled" >&5
+$as_echo "$as_me: WARNING: jni headers/dependencies not found. jni support disabled" >&2;}
+    use_jni=no
+  else
+    use_jni=yes
+    for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
+      JNI_INCLUDES="$JNI_INCLUDES -I$JNI_INCLUDE_DIR"
+    done
   fi
 fi
 
@@ -14381,7 +14803,7 @@ $as_echo "#define USE_ENDOMORPHISM 1" >>confdefs.h
 
 fi
 
-if test x"$use_ecmult_static_precomputation" = x"yes"; then
+if test x"$set_precomp" = x"yes"; then
 
 $as_echo "#define USE_ECMULT_STATIC_PRECOMPUTATION 1" >>confdefs.h
 
@@ -14390,12 +14812,6 @@ fi
 if test x"$enable_module_ecdh" = x"yes"; then
 
 $as_echo "#define ENABLE_MODULE_ECDH 1" >>confdefs.h
-
-fi
-
-if test x"$enable_module_schnorr" = x"yes"; then
-
-$as_echo "#define ENABLE_MODULE_SCHNORR 1" >>confdefs.h
 
 fi
 
@@ -14630,6 +15046,14 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
  esac
 
 
+if test x"$use_external_asm" = x"yes"; then
+
+$as_echo "#define USE_EXTERNAL_ASM 1" >>confdefs.h
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Using static precomputation: $set_precomp" >&5
+$as_echo "$as_me: Using static precomputation: $set_precomp" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: Using assembly optimizations: $set_asm" >&5
 $as_echo "$as_me: Using assembly optimizations: $set_asm" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: Using field implementation: $set_field" >&5
@@ -14640,8 +15064,14 @@ $as_echo "$as_me: Using bignum implementation: $set_bignum" >&6;}
 $as_echo "$as_me: Using scalar implementation: $set_scalar" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: Using endomorphism optimizations: $use_endomorphism" >&5
 $as_echo "$as_me: Using endomorphism optimizations: $use_endomorphism" >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Building for coverage analysis: $enable_coverage" >&5
+$as_echo "$as_me: Building for coverage analysis: $enable_coverage" >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Building ECDH module: $enable_module_ecdh" >&5
+$as_echo "$as_me: Building ECDH module: $enable_module_ecdh" >&6;}
 { $as_echo "$as_me:${as_lineno-$LINENO}: Building ECDSA pubkey recovery module: $enable_module_recovery" >&5
 $as_echo "$as_me: Building ECDSA pubkey recovery module: $enable_module_recovery" >&6;}
+{ $as_echo "$as_me:${as_lineno-$LINENO}: Using jni: $use_jni" >&5
+$as_echo "$as_me: Using jni: $use_jni" >&6;}
 
 if test x"$enable_experimental" = x"yes"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: ******" >&5
@@ -14652,16 +15082,14 @@ $as_echo "$as_me: WARNING: experimental build" >&6;}
 $as_echo "$as_me: Experimental features do not have stable APIs or properties, and may not be safe for production use." >&6;}
   { $as_echo "$as_me:${as_lineno-$LINENO}: Building ECDH module: $enable_module_ecdh" >&5
 $as_echo "$as_me: Building ECDH module: $enable_module_ecdh" >&6;}
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Building Schnorr signatures module: $enable_module_schnorr" >&5
-$as_echo "$as_me: Building Schnorr signatures module: $enable_module_schnorr" >&6;}
   { $as_echo "$as_me:${as_lineno-$LINENO}: ******" >&5
 $as_echo "$as_me: ******" >&6;}
 else
-  if test x"$enable_module_schnorr" = x"yes"; then
-    as_fn_error $? "Schnorr signature module is experimental. Use --enable-experimental to allow." "$LINENO" 5
-  fi
   if test x"$enable_module_ecdh" = x"yes"; then
     as_fn_error $? "ECDH module is experimental. Use --enable-experimental to allow." "$LINENO" 5
+  fi
+  if test x"$set_asm" = x"arm"; then
+    as_fn_error $? "ARM assembly optimization is experimental. Use --enable-experimental to allow." "$LINENO" 5
   fi
 fi
 
@@ -14673,12 +15101,29 @@ ac_config_files="$ac_config_files Makefile libsecp256k1.pc"
 
 
 
+
+ if test x"$enable_coverage" = x"yes"; then
+  ENABLE_COVERAGE_TRUE=
+  ENABLE_COVERAGE_FALSE='#'
+else
+  ENABLE_COVERAGE_TRUE='#'
+  ENABLE_COVERAGE_FALSE=
+fi
+
  if test x"$use_tests" != x"no"; then
   USE_TESTS_TRUE=
   USE_TESTS_FALSE='#'
 else
   USE_TESTS_TRUE='#'
   USE_TESTS_FALSE=
+fi
+
+ if test x"$use_exhaustive_tests" != x"no"; then
+  USE_EXHAUSTIVE_TESTS_TRUE=
+  USE_EXHAUSTIVE_TESTS_FALSE='#'
+else
+  USE_EXHAUSTIVE_TESTS_TRUE='#'
+  USE_EXHAUSTIVE_TESTS_FALSE=
 fi
 
  if test x"$use_benchmark" = x"yes"; then
@@ -14689,7 +15134,7 @@ else
   USE_BENCHMARK_FALSE=
 fi
 
- if test x"$use_ecmult_static_precomputation" = x"yes"; then
+ if test x"$set_precomp" = x"yes"; then
   USE_ECMULT_STATIC_PRECOMPUTATION_TRUE=
   USE_ECMULT_STATIC_PRECOMPUTATION_FALSE='#'
 else
@@ -14705,20 +15150,36 @@ else
   ENABLE_MODULE_ECDH_FALSE=
 fi
 
- if test x"$enable_module_schnorr" = x"yes"; then
-  ENABLE_MODULE_SCHNORR_TRUE=
-  ENABLE_MODULE_SCHNORR_FALSE='#'
-else
-  ENABLE_MODULE_SCHNORR_TRUE='#'
-  ENABLE_MODULE_SCHNORR_FALSE=
-fi
-
  if test x"$enable_module_recovery" = x"yes"; then
   ENABLE_MODULE_RECOVERY_TRUE=
   ENABLE_MODULE_RECOVERY_FALSE='#'
 else
   ENABLE_MODULE_RECOVERY_TRUE='#'
   ENABLE_MODULE_RECOVERY_FALSE=
+fi
+
+ if test x"$use_jni" == x"yes"; then
+  USE_JNI_TRUE=
+  USE_JNI_FALSE='#'
+else
+  USE_JNI_TRUE='#'
+  USE_JNI_FALSE=
+fi
+
+ if test x"$use_external_asm" = x"yes"; then
+  USE_EXTERNAL_ASM_TRUE=
+  USE_EXTERNAL_ASM_FALSE='#'
+else
+  USE_EXTERNAL_ASM_TRUE='#'
+  USE_EXTERNAL_ASM_FALSE=
+fi
+
+ if test x"$set_asm" = x"arm"; then
+  USE_ASM_ARM_TRUE=
+  USE_ASM_ARM_FALSE='#'
+else
+  USE_ASM_ARM_TRUE='#'
+  USE_ASM_ARM_FALSE=
 fi
 
 
@@ -14863,9 +15324,21 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${am__fastdepCCAS_TRUE}" && test -z "${am__fastdepCCAS_FALSE}"; then
+  as_fn_error $? "conditional \"am__fastdepCCAS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 
+if test -z "${ENABLE_COVERAGE_TRUE}" && test -z "${ENABLE_COVERAGE_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_COVERAGE\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${USE_TESTS_TRUE}" && test -z "${USE_TESTS_FALSE}"; then
   as_fn_error $? "conditional \"USE_TESTS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${USE_EXHAUSTIVE_TESTS_TRUE}" && test -z "${USE_EXHAUSTIVE_TESTS_FALSE}"; then
+  as_fn_error $? "conditional \"USE_EXHAUSTIVE_TESTS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${USE_BENCHMARK_TRUE}" && test -z "${USE_BENCHMARK_FALSE}"; then
@@ -14880,12 +15353,20 @@ if test -z "${ENABLE_MODULE_ECDH_TRUE}" && test -z "${ENABLE_MODULE_ECDH_FALSE}"
   as_fn_error $? "conditional \"ENABLE_MODULE_ECDH\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${ENABLE_MODULE_SCHNORR_TRUE}" && test -z "${ENABLE_MODULE_SCHNORR_FALSE}"; then
-  as_fn_error $? "conditional \"ENABLE_MODULE_SCHNORR\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
 if test -z "${ENABLE_MODULE_RECOVERY_TRUE}" && test -z "${ENABLE_MODULE_RECOVERY_FALSE}"; then
   as_fn_error $? "conditional \"ENABLE_MODULE_RECOVERY\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${USE_JNI_TRUE}" && test -z "${USE_JNI_FALSE}"; then
+  as_fn_error $? "conditional \"USE_JNI\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${USE_EXTERNAL_ASM_TRUE}" && test -z "${USE_EXTERNAL_ASM_FALSE}"; then
+  as_fn_error $? "conditional \"USE_EXTERNAL_ASM\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${USE_ASM_ARM_TRUE}" && test -z "${USE_ASM_ARM_FALSE}"; then
+  as_fn_error $? "conditional \"USE_ASM_ARM\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

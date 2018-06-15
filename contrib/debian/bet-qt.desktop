@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Bet
+Comment=Bet P2P Cryptocurrency
+Comment[fr]=Bet, monnaie virtuelle cryptographique pair à pair
+Comment[tr]=Bet, eşten eşe kriptografik sanal para birimi
+Exec=bet-qt %u
+Terminal=false
+Type=Application
+Icon=bet128
+MimeType=x-scheme-handler/bet;
+Categories=Office;Finance;

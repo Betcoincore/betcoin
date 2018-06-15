@@ -1,0 +1,68 @@
+Source: bet
+Section: utils
+Priority: optional
+Maintainer: Holger Schinzel <holger@bet.org>
+Uploaders: Holger Schinzel <holger@bet.org>
+Build-Depends: debhelper,
+ devscripts,
+ automake,
+ libtool,
+ bash-completion,
+ libdb4.8++-dev,
+ libssl-dev,
+ pkg-config,
+ libevent-dev,
+ libboost-system1.48-dev | libboost-system-dev (>> 1.35),
+ libboost-filesystem1.48-dev | libboost-filesystem-dev (>> 1.35),
+ libboost-program-options1.48-dev | libboost-program-options-dev (>> 1.35),
+ libboost-thread1.48-dev | libboost-thread-dev (>> 1.35),
+ libboost-test1.48-dev | libboost-test-dev (>> 1.35),
+ libboost-chrono1.48-dev | libboost-chrono-dev (>> 1.35),
+ qt4-qmake,
+ libqt4-dev,
+ libqrencode-dev,
+ libprotobuf-dev, protobuf-compiler,
+ python
+Standards-Version: 3.9.2
+Homepage: https://www.bet.org/
+Vcs-Git: git://github.com/betpay/bet.git
+Vcs-Browser: https://github.com/betpay/bet
+
+Package: betd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: peer-to-peer network based digital currency - daemon
+ Bet is an experimental new digital currency that enables anonymous, instant
+ payments to anyone, anywhere in the world. Bet uses peer-to-peer
+ technology to operate with no central authority: managing transactions
+ and issuing money are carried out collectively by the network. Bet Core
+ is the name of the open source software which enables the use of this currency.
+ .
+ This package provides the daemon, betd, and the CLI tool
+ bet-cli to interact with the daemon.
+
+Package: bet-qt
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: peer-to-peer network based digital currency - Qt GUI
+ Bet is an experimental new digital currency that enables anonymous, instant
+ payments to anyone, anywhere in the world. Bet uses peer-to-peer
+ technology to operate with no central authority: managing transactions
+ and issuing money are carried out collectively by the network. Bet Core
+ is the name of the open source software which enables the use of this currency.
+ .
+ This package provides Bet-Qt, a GUI for Bet based on Qt.
+
+Package: bet-tx
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: peer-to-peer digital currency - standalone transaction tool
+ Bet is an experimental new digital currency that enables anonymous, instant
+ payments to anyone, anywhere in the world. Bet uses peer-to-peer
+ technology to operate with no central authority: managing transactions
+ and issuing money are carried out collectively by the network. Bet Core
+ is the name of the open source software which enables the use of this currency.
+ .
+ This package provides bet-tx, a command-line transaction creation
+ tool which can be used without a bet daemon.  Some means of
+ exchanging minimal transaction data with peers is still required.

@@ -8,14 +8,14 @@
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
+/* Define this symbol to compile out all VERIFY code */
+/* #undef COVERAGE */
+
 /* Define this symbol to enable the ECDH module */
 /* #undef ENABLE_MODULE_ECDH */
 
 /* Define this symbol to enable the ECDSA pubkey recovery module */
 #define ENABLE_MODULE_RECOVERY 1
-
-/* Define this symbol to enable the Schnorr signature module */
-/* #undef ENABLE_MODULE_SCHNORR */
 
 /* Define this symbol if OpenSSL EC functions are available */
 #define ENABLE_OPENSSL_TESTS 1
@@ -24,7 +24,7 @@
 #define HAVE_BUILTIN_EXPECT 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-#define HAVE_DLFCN_H 1
+/* #undef HAVE_DLFCN_H */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -33,7 +33,7 @@
 #define HAVE_LIBCRYPTO 1
 
 /* Define this symbol if libgmp is installed */
-#define HAVE_LIBGMP 1
+/* #undef HAVE_LIBGMP */
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
@@ -98,6 +98,10 @@
 /* Define this symbol to use endomorphism optimization */
 /* #undef USE_ENDOMORPHISM */
 
+/* Define this symbol if an external (non-inline) assembly implementation is
+   used */
+/* #undef USE_EXTERNAL_ASM */
+
 /* Define this symbol to use the FIELD_10X26 implementation */
 /* #undef USE_FIELD_10X26 */
 
@@ -105,16 +109,16 @@
 #define USE_FIELD_5X52 1
 
 /* Define this symbol to use the native field inverse implementation */
-/* #undef USE_FIELD_INV_BUILTIN */
+#define USE_FIELD_INV_BUILTIN 1
 
 /* Define this symbol to use the num-based field inverse implementation */
-#define USE_FIELD_INV_NUM 1
+/* #undef USE_FIELD_INV_NUM */
 
 /* Define this symbol to use the gmp implementation for num */
-#define USE_NUM_GMP 1
+/* #undef USE_NUM_GMP */
 
 /* Define this symbol to use no num implementation */
-/* #undef USE_NUM_NONE */
+#define USE_NUM_NONE 1
 
 /* Define this symbol to use the 4x64 scalar implementation */
 #define USE_SCALAR_4X64 1
@@ -123,10 +127,10 @@
 /* #undef USE_SCALAR_8X32 */
 
 /* Define this symbol to use the native scalar inverse implementation */
-/* #undef USE_SCALAR_INV_BUILTIN */
+#define USE_SCALAR_INV_BUILTIN 1
 
 /* Define this symbol to use the num-based scalar inverse implementation */
-#define USE_SCALAR_INV_NUM 1
+/* #undef USE_SCALAR_INV_NUM */
 
 /* Version number of package */
 #define VERSION "0.1"

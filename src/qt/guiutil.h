@@ -1,5 +1,11 @@
-#ifndef GUIUTIL_H
-#define GUIUTIL_H
+// Copyright (c) 2011-2015 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_QT_GUIUTIL_H
+#define BITCOIN_QT_GUIUTIL_H
+
+#include "amount.h"
 
 #include <QEvent>
 #include <QHeaderView>
@@ -8,21 +14,23 @@
 #include <QProgressBar>
 #include <QString>
 #include <QTableView>
+#include <QLabel>
 
 #include <boost/filesystem.hpp>
 
+class QValidatedLineEdit;
 class SendCoinsRecipient;
 
 QT_BEGIN_NAMESPACE
+class QAbstractItemView;
+class QDateTime;
 class QFont;
 class QLineEdit;
-class QWidget;
-class QDateTime;
 class QUrl;
-class QAbstractItemView;
+class QWidget;
 QT_END_NAMESPACE
 
-/** Utility functions used by the Bitcoin Qt UI.
+/** Utility functions used by the Bet Qt UI.
  */
 namespace GUIUtil
 {
@@ -30,17 +38,20 @@ namespace GUIUtil
     QString dateTimeStr(const QDateTime &datetime);
     QString dateTimeStr(qint64 nTime);
 
-    // Render Bitcoin addresses in monospace font
-    QFont bitcoinAddressFont();
+    // Return a monospace font
+    QFont fixedPitchFont();
 
     // Set up widgets for address and amounts
-    void setupAddressWidget(QLineEdit *widget, QWidget *parent);
+    void setupAddressWidget(QValidatedLineEdit *widget, QWidget *parent);
     void setupAmountWidget(QLineEdit *widget, QWidget *parent);
 
-    // Parse "Bet:" URI into recipient object, return true on successful parsing
-    // See Bitcoin URI definition discussion here: https://bitcointalk.org/index.php?topic=33490.0
+    // Parse "bet:" URI into recipient object, return true on successful parsing
     bool parseBitcoinURI(const QUrl &uri, SendCoinsRecipient *out);
     bool parseBitcoinURI(QString uri, SendCoinsRecipient *out);
+    QString formatBitcoinURI(const SendCoinsRecipient &info);
+
+    // Returns true if given address+amount meets "dust" definition
+    bool isDust(const QString& address, const CAmount& amount);
 
     // HTML escaping for rich text controls
     QString HtmlEscape(const QString& str, bool fMultiLine=false);
@@ -57,10 +68,9 @@ namespace GUIUtil
     /** Return a field of the currently selected entry as a QString. Does nothing if nothing
         is selected.
        @param[in] column  Data column to extract from the model
-       @param[in] role    Data role to extract from the model
        @see  TransactionView::copyLabel, TransactionView::copyAmount, TransactionView::copyAddress
      */
-    QString getEntryData(QAbstractItemView *view, int column, int role);
+    QList<QModelIndex> getEntryData(QAbstractItemView *view, int column);
 
     void setClipboard(const QString& str);
 
@@ -74,9 +84,22 @@ namespace GUIUtil
       @param[out] selectedSuffixOut  Pointer to return the suffix (file type) that was selected (or 0).
                   Can be useful when choosing the save file format based on suffix.
      */
-    QString getSaveFileName(QWidget *parent=0, const QString &caption=QString(),
-                                   const QString &dir=QString(), const QString &filter=QString(),
-                                   QString *selectedSuffixOut=0);
+    QString getSaveFileName(QWidget *parent, const QString &caption, const QString &dir,
+        const QString &filter,
+        QString *selectedSuffixOut);
+
+    /** Get open filename, convenience wrapper for QFileDialog::getOpenFileName.
+
+      @param[in] parent  Parent window (or 0)
+      @param[in] caption Window caption (or empty, for default)
+      @param[in] dir     Starting directory (or empty, to default to documents directory)
+      @param[in] filter  Filter specification such as "Comma Separated Files (*.csv)"
+      @param[out] selectedSuffixOut  Pointer to return the suffix (file type) that was selected (or 0).
+                  Can be useful when choosing the save file format based on suffix.
+     */
+    QString getOpenFileName(QWidget *parent, const QString &caption, const QString &dir,
+        const QString &filter,
+        QString *selectedSuffixOut);
 
     /** Get connection type to call object slot in GUI thread with invokeMethod. The call will be blocking.
 
@@ -90,7 +113,13 @@ namespace GUIUtil
 
     // Open debug.log
     void openDebugLogfile();
-    
+	
+    // Open bet.conf
+    void openConfigfile();	
+
+    // Open masternode.conf
+    void openMNConfigfile();	
+
     // Browse backup folder
     void showBackups();
 
@@ -130,7 +159,7 @@ namespace GUIUtil
         Q_OBJECT
 
         public:
-            TableViewLastColumnResizingFixer(QTableView* table, int lastColMinimumWidth, int allColsMinimumWidth);
+            TableViewLastColumnResizingFixer(QTableView* table, int lastColMinimumWidth, int allColsMinimumWidth, QObject *parent);
             void stretchColumnWidth(int column);
 
         private:
@@ -149,7 +178,7 @@ namespace GUIUtil
             void setViewHeaderResizeMode(int logicalIndex, QHeaderView::ResizeMode resizeMode);
             void resizeColumn(int nColumnIndex, int width);
 
-        private slots:
+        private Q_SLOTS:
             void on_sectionResized(int logicalIndex, int oldSize, int newSize);
             void on_geometriesChanged();
     };
@@ -157,6 +186,20 @@ namespace GUIUtil
     bool GetStartOnSystemStartup();
     bool SetStartOnSystemStartup(bool fAutoStart);
 
+    /** Modify Qt network specific settings on migration */
+    void migrateQtSettings();
+
+    /** Save window size and position */
+    void saveWindowGeometry(const QString& strSetting, QWidget *parent);
+    /** Restore window size and position */
+    void restoreWindowGeometry(const QString& strSetting, const QSize &defaultSizeIn, QWidget *parent);
+
+    /** Load global CSS theme */
+    QString loadStyleSheet();
+
+    /** Return name of current CSS theme */
+    QString getThemeName();
+    
     /* Convert QString to OS specific boost path through UTF-8 */
     boost::filesystem::path qstringToBoostPath(const QString &path);
 
@@ -167,7 +210,7 @@ namespace GUIUtil
     QString formatDurationStr(int secs);
 
     /* Format CNodeStats.nServices bitmask into a user-readable string */
-    QString formatServicesStr(uint64_t mask);
+    QString formatServicesStr(quint64 mask);
 
     /* Format a CNodeCombinedStats.dPingTime into a user-readable string or display N/A, if 0*/
     QString formatPingTime(double dPingTime);
@@ -175,43 +218,48 @@ namespace GUIUtil
     /* Format a CNodeCombinedStats.nTimeOffset into a user-readable string. */
     QString formatTimeOffset(int64_t nTimeOffset);
 
+    QString formatNiceTimeOffset(qint64 secs);
 
-    /** Help message for Bitcoin-Qt, shown with --help. */
-    class HelpMessageBox : public QMessageBox
+    class ClickableLabel : public QLabel
     {
         Q_OBJECT
 
-    public:
-        HelpMessageBox(QWidget *parent = 0);
-
-        /** Show message box or print help message to standard output, based on operating system. */
-        void showOrPrint();
-
-        /** Print help message to console */
-        void printToConsole();
-
-    private:
-        QString header;
-        QString coreOptions;
-        QString uiOptions;
+    Q_SIGNALS:
+        /** Emitted when the label is clicked. The relative mouse coordinates of the click are
+         * passed to the signal.
+         */
+        void clicked(const QPoint& point);
+    protected:
+        void mouseReleaseEvent(QMouseEvent *event);
     };
-
-    void SetBlackThemeQSS(QApplication& app);
+    
+    class ClickableProgressBar : public QProgressBar
+    {
+        Q_OBJECT
+        
+    Q_SIGNALS:
+        /** Emitted when the progressbar is clicked. The relative mouse coordinates of the click are
+         * passed to the signal.
+         */
+        void clicked(const QPoint& point);
+    protected:
+        void mouseReleaseEvent(QMouseEvent *event);
+    };
 
 #if defined(Q_OS_MAC) && QT_VERSION >= 0x050000
     // workaround for Qt OSX Bug:
     // https://bugreports.qt-project.org/browse/QTBUG-15631
     // QProgressBar uses around 10% CPU even when app is in background
-    class ProgressBar : public QProgressBar
+    class ProgressBar : public ClickableProgressBar
     {
         bool event(QEvent *e) {
             return (e->type() != QEvent::StyleAnimationUpdate) ? QProgressBar::event(e) : false;
         }
     };
 #else
-    typedef QProgressBar ProgressBar;
+    typedef ClickableProgressBar ProgressBar;
 #endif
 
 } // namespace GUIUtil
 
-#endif // GUIUTIL_H
+#endif // BITCOIN_QT_GUIUTIL_H

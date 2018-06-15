@@ -90,33 +90,32 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = x86_64-pc-linux-gnu
-host_triplet = x86_64-pc-linux-gnu
+host_triplet = x86_64-w64-mingw32
 noinst_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 	$(am__EXEEXT_4) $(am__EXEEXT_5)
 #am__append_1 = bench_verify bench_sign bench_internal
+TESTS = $(am__EXEEXT_2) $(am__EXEEXT_3)
 am__append_2 = tests
-TESTS = tests$(EXEEXT)
-am__append_3 = -I$(top_srcdir)
-am__append_4 = -Wall -Wextra -Wno-unused-function
-#am__append_5 = include/secp256k1_ecdh.h
-#am__append_6 = src/modules/ecdh/main_impl.h \
+am__append_3 = -DVERIFY
+am__append_4 = tests
+am__append_5 = exhaustive_tests
+am__append_6 = -DVERIFY
+am__append_7 = exhaustive_tests
+am__append_8 = -I$(top_srcdir)
+am__append_9 = -Wall -Wextra -Wno-unused-function
+#am__append_10 = include/secp256k1_ecdh.h
+#am__append_11 = src/modules/ecdh/main_impl.h \
 #	src/modules/ecdh/tests_impl.h
-##am__append_7 = bench_ecdh
-#am__append_8 = include/secp256k1_schnorr.h
-#am__append_9 =  \
-#	src/modules/schnorr/main_impl.h \
-#	src/modules/schnorr/schnorr.h \
-#	src/modules/schnorr/schnorr_impl.h \
-#	src/modules/schnorr/tests_impl.h
-##am__append_10 = bench_schnorr_verify
-am__append_11 = include/secp256k1_recovery.h
-am__append_12 =  \
+##am__append_12 = bench_ecdh
+am__append_13 = include/secp256k1_recovery.h
+am__append_14 =  \
 	src/modules/recovery/main_impl.h \
 	src/modules/recovery/tests_impl.h
-#am__append_13 = bench_recover
+#am__append_15 = bench_recover
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps =  \
+	$(top_srcdir)/build-aux/m4/ax_jni_include_dir.m4 \
 	$(top_srcdir)/build-aux/m4/ax_prog_cc_for_build.m4 \
 	$(top_srcdir)/build-aux/m4/bitcoin_secp.m4 \
 	$(top_srcdir)/build-aux/m4/libtool.m4 \
@@ -165,9 +164,12 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(pkgconfigdir)" \
 	"$(DESTDIR)$(includedir)"
-LTLIBRARIES = $(lib_LTLIBRARIES)
-am__DEPENDENCIES_1 =
-libsecp256k1_la_DEPENDENCIES = $(am__DEPENDENCIES_1)
+LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
+#am__DEPENDENCIES_1 = libsecp256k1_jni.la
+am__DEPENDENCIES_2 =
+#am__DEPENDENCIES_3 = libsecp256k1_common.la
+libsecp256k1_la_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3)
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libsecp256k1_la_OBJECTS = src/libsecp256k1_la-secp256k1.lo
 libsecp256k1_la_OBJECTS = $(am_libsecp256k1_la_OBJECTS)
@@ -175,12 +177,23 @@ AM_V_lt = $(am__v_lt_$(V))
 am__v_lt_ = $(am__v_lt_$(AM_DEFAULT_VERBOSITY))
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+libsecp256k1_common_la_LIBADD =
+am__libsecp256k1_common_la_SOURCES_DIST = src/asm/field_10x26_arm.s
+##am_libsecp256k1_common_la_OBJECTS = src/asm/field_10x26_arm.lo
+libsecp256k1_common_la_OBJECTS = $(am_libsecp256k1_common_la_OBJECTS)
+#am_libsecp256k1_common_la_rpath =
+libsecp256k1_jni_la_LIBADD =
+am_libsecp256k1_jni_la_OBJECTS =  \
+	src/java/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.lo \
+	src/java/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.lo
+libsecp256k1_jni_la_OBJECTS = $(am_libsecp256k1_jni_la_OBJECTS)
+#am_libsecp256k1_jni_la_rpath =
 #am__EXEEXT_1 = bench_verify$(EXEEXT) \
 #	bench_sign$(EXEEXT) \
 #	bench_internal$(EXEEXT)
 am__EXEEXT_2 = tests$(EXEEXT)
-##am__EXEEXT_3 = bench_ecdh$(EXEEXT)
-##am__EXEEXT_4 = bench_schnorr_verify$(EXEEXT)
+am__EXEEXT_3 = exhaustive_tests$(EXEEXT)
+##am__EXEEXT_4 = bench_ecdh$(EXEEXT)
 #am__EXEEXT_5 = bench_recover$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 am__bench_ecdh_SOURCES_DIST = src/bench_ecdh.c
@@ -188,40 +201,49 @@ am__bench_ecdh_SOURCES_DIST = src/bench_ecdh.c
 bench_ecdh_OBJECTS = $(am_bench_ecdh_OBJECTS)
 ##bench_ecdh_DEPENDENCIES =  \
 ##	libsecp256k1.la \
-##	$(am__DEPENDENCIES_1)
+##	$(am__DEPENDENCIES_2) \
+##	$(am__DEPENDENCIES_3)
 am__bench_internal_SOURCES_DIST = src/bench_internal.c
 #am_bench_internal_OBJECTS = src/bench_internal-bench_internal.$(OBJEXT)
 bench_internal_OBJECTS = $(am_bench_internal_OBJECTS)
 #bench_internal_DEPENDENCIES =  \
-#	$(am__DEPENDENCIES_1)
+#	$(am__DEPENDENCIES_2) \
+#	$(am__DEPENDENCIES_3)
 am__bench_recover_SOURCES_DIST = src/bench_recover.c
 #am_bench_recover_OBJECTS = src/bench_recover.$(OBJEXT)
 bench_recover_OBJECTS = $(am_bench_recover_OBJECTS)
 #bench_recover_DEPENDENCIES = libsecp256k1.la \
-#	$(am__DEPENDENCIES_1)
-am__bench_schnorr_verify_SOURCES_DIST = src/bench_schnorr_verify.c
-##am_bench_schnorr_verify_OBJECTS = src/bench_schnorr_verify.$(OBJEXT)
-bench_schnorr_verify_OBJECTS = $(am_bench_schnorr_verify_OBJECTS)
-##bench_schnorr_verify_DEPENDENCIES = libsecp256k1.la \
-##	$(am__DEPENDENCIES_1)
+#	$(am__DEPENDENCIES_2) \
+#	$(am__DEPENDENCIES_3)
 am__bench_sign_SOURCES_DIST = src/bench_sign.c
 #am_bench_sign_OBJECTS = src/bench_sign.$(OBJEXT)
 bench_sign_OBJECTS = $(am_bench_sign_OBJECTS)
 #bench_sign_DEPENDENCIES = libsecp256k1.la \
-#	$(am__DEPENDENCIES_1) \
-#	$(am__DEPENDENCIES_1)
+#	$(am__DEPENDENCIES_2) \
+#	$(am__DEPENDENCIES_2) \
+#	$(am__DEPENDENCIES_3)
 am__bench_verify_SOURCES_DIST = src/bench_verify.c
 #am_bench_verify_OBJECTS =  \
 #	src/bench_verify.$(OBJEXT)
 bench_verify_OBJECTS = $(am_bench_verify_OBJECTS)
 #bench_verify_DEPENDENCIES = libsecp256k1.la \
-#	$(am__DEPENDENCIES_1) \
-#	$(am__DEPENDENCIES_1)
+#	$(am__DEPENDENCIES_2) \
+#	$(am__DEPENDENCIES_2) \
+#	$(am__DEPENDENCIES_3)
+am__exhaustive_tests_SOURCES_DIST = src/tests_exhaustive.c
+am_exhaustive_tests_OBJECTS = src/exhaustive_tests-tests_exhaustive.$(OBJEXT)
+exhaustive_tests_OBJECTS = $(am_exhaustive_tests_OBJECTS)
+exhaustive_tests_DEPENDENCIES =  \
+	$(am__DEPENDENCIES_2)
+exhaustive_tests_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
+	$(AM_CFLAGS) $(CFLAGS) $(exhaustive_tests_LDFLAGS) $(LDFLAGS) \
+	-o $@
 am__tests_SOURCES_DIST = src/tests.c
 am_tests_OBJECTS = src/tests-tests.$(OBJEXT)
 tests_OBJECTS = $(am_tests_OBJECTS)
-tests_DEPENDENCIES = $(am__DEPENDENCIES_1) \
-	$(am__DEPENDENCIES_1)
+tests_DEPENDENCIES = $(am__DEPENDENCIES_2) \
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3)
 tests_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(tests_LDFLAGS) $(LDFLAGS) -o $@
@@ -259,17 +281,27 @@ AM_V_CCLD = $(am__v_CCLD_$(V))
 am__v_CCLD_ = $(am__v_CCLD_$(AM_DEFAULT_VERBOSITY))
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libsecp256k1_la_SOURCES) $(bench_ecdh_SOURCES) \
+CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
+LTCCASCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CCAS) $(AM_CCASFLAGS) \
+	$(CCASFLAGS)
+AM_V_CCAS = $(am__v_CCAS_$(V))
+am__v_CCAS_ = $(am__v_CCAS_$(AM_DEFAULT_VERBOSITY))
+am__v_CCAS_0 = @echo "  CCAS    " $@;
+am__v_CCAS_1 = 
+SOURCES = $(libsecp256k1_la_SOURCES) $(libsecp256k1_common_la_SOURCES) \
+	$(libsecp256k1_jni_la_SOURCES) $(bench_ecdh_SOURCES) \
 	$(bench_internal_SOURCES) $(bench_recover_SOURCES) \
-	$(bench_schnorr_verify_SOURCES) $(bench_sign_SOURCES) \
-	$(bench_verify_SOURCES) $(tests_SOURCES)
+	$(bench_sign_SOURCES) $(bench_verify_SOURCES) \
+	$(exhaustive_tests_SOURCES) $(tests_SOURCES)
 DIST_SOURCES = $(libsecp256k1_la_SOURCES) \
-	$(am__bench_ecdh_SOURCES_DIST) \
+	$(am__libsecp256k1_common_la_SOURCES_DIST) \
+	$(libsecp256k1_jni_la_SOURCES) $(am__bench_ecdh_SOURCES_DIST) \
 	$(am__bench_internal_SOURCES_DIST) \
 	$(am__bench_recover_SOURCES_DIST) \
-	$(am__bench_schnorr_verify_SOURCES_DIST) \
 	$(am__bench_sign_SOURCES_DIST) \
-	$(am__bench_verify_SOURCES_DIST) $(am__tests_SOURCES_DIST)
+	$(am__bench_verify_SOURCES_DIST) \
+	$(am__exhaustive_tests_SOURCES_DIST) $(am__tests_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -277,11 +309,11 @@ am__can_run_installinfo = \
   esac
 DATA = $(pkgconfig_DATA)
 am__include_HEADERS_DIST = include/secp256k1.h \
-	include/secp256k1_ecdh.h include/secp256k1_schnorr.h \
-	include/secp256k1_recovery.h
+	include/secp256k1_ecdh.h include/secp256k1_recovery.h
 am__noinst_HEADERS_DIST = src/scalar.h src/scalar_4x64.h \
-	src/scalar_8x32.h src/scalar_impl.h src/scalar_4x64_impl.h \
-	src/scalar_8x32_impl.h src/group.h src/group_impl.h \
+	src/scalar_8x32.h src/scalar_low.h src/scalar_impl.h \
+	src/scalar_4x64_impl.h src/scalar_8x32_impl.h \
+	src/scalar_low_impl.h src/group.h src/group_impl.h \
 	src/num_gmp.h src/num_gmp_impl.h src/ecdsa.h src/ecdsa_impl.h \
 	src/eckey.h src/eckey_impl.h src/ecmult.h src/ecmult_impl.h \
 	src/ecmult_const.h src/ecmult_const_impl.h src/ecmult_gen.h \
@@ -289,16 +321,14 @@ am__noinst_HEADERS_DIST = src/scalar.h src/scalar_4x64.h \
 	src/field_10x26.h src/field_10x26_impl.h src/field_5x52.h \
 	src/field_5x52_impl.h src/field_5x52_int128_impl.h \
 	src/field_5x52_asm_impl.h \
-	src/java/org_bitcoin_NativeSecp256k1.h src/util.h \
+	src/java/org_bitcoin_NativeSecp256k1.h \
+	src/java/org_bitcoin_Secp256k1Context.h src/util.h \
 	src/testrand.h src/testrand_impl.h src/hash.h src/hash_impl.h \
 	src/field.h src/field_impl.h src/bench.h \
 	contrib/lax_der_parsing.h contrib/lax_der_parsing.c \
 	contrib/lax_der_privatekey_parsing.h \
 	contrib/lax_der_privatekey_parsing.c \
 	src/modules/ecdh/main_impl.h src/modules/ecdh/tests_impl.h \
-	src/modules/schnorr/main_impl.h src/modules/schnorr/schnorr.h \
-	src/modules/schnorr/schnorr_impl.h \
-	src/modules/schnorr/tests_impl.h \
 	src/modules/recovery/main_impl.h \
 	src/modules/recovery/tests_impl.h
 HEADERS = $(include_HEADERS) $(noinst_HEADERS)
@@ -480,7 +510,7 @@ am__set_TESTS_bases = \
   bases=`echo $$bases`
 RECHECK_LOGS = $(TEST_LOGS)
 TEST_SUITE_LOG = test-suite.log
-TEST_EXTENSIONS =  .test
+TEST_EXTENSIONS = .exe .test
 LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 LOG_COMPILE = $(LOG_COMPILER) $(AM_LOG_FLAGS) $(LOG_FLAGS)
 am__set_b = \
@@ -494,7 +524,7 @@ am__set_b = \
       b='$*';; \
   esac
 am__test_logs1 = $(TESTS:=.log)
-am__test_logs2 = $(am__test_logs1:.log=.log)
+am__test_logs2 = $(am__test_logs1:.exe.log=.log)
 TEST_LOGS = $(am__test_logs2:.test.log=.log)
 TEST_LOG_DRIVER = $(SHELL) $(top_srcdir)/build-aux/test-driver
 TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
@@ -502,7 +532,6 @@ TEST_LOG_COMPILE = $(TEST_LOG_COMPILER) $(AM_TEST_LOG_FLAGS) \
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/libsecp256k1.pc.in \
 	$(srcdir)/src/modules/ecdh/Makefile.am.include \
 	$(srcdir)/src/modules/recovery/Makefile.am.include \
-	$(srcdir)/src/modules/schnorr/Makefile.am.include \
 	$(top_srcdir)/build-aux/compile \
 	$(top_srcdir)/build-aux/config.guess \
 	$(top_srcdir)/build-aux/config.sub \
@@ -535,7 +564,7 @@ distcleancheck_listfiles = find . -type f -print
 ACLOCAL = ${SHELL} /home/ujstar/betcoin-master/src/secp256k1/build-aux/missing aclocal-1.15
 AMTAR = $${TAR-tar}
 AM_DEFAULT_VERBOSITY = 0
-AR = /usr/bin/ar
+AR = /usr/bin/x86_64-w64-mingw32-ar
 AUTOCONF = ${SHELL} /home/ujstar/betcoin-master/src/secp256k1/build-aux/missing autoconf
 AUTOHEADER = ${SHELL} /home/ujstar/betcoin-master/src/secp256k1/build-aux/missing autoheader
 AUTOMAKE = ${SHELL} /home/ujstar/betcoin-master/src/secp256k1/build-aux/missing automake-1.15
@@ -543,28 +572,31 @@ AWK = mawk
 BREW = 
 BUILD_EXEEXT = 
 BUILD_OBJEXT = 
-CC = gcc
+CC = x86_64-w64-mingw32-gcc
+CCAS = x86_64-w64-mingw32-gcc
+CCASDEPMODE = depmode=gcc3
+CCASFLAGS = -pipe -O2 
 CCDEPMODE = depmode=gcc3
 CC_FOR_BUILD = gcc
-CFLAGS = -g -O2 -W -std=c89 -pedantic -Wall -Wextra -Wcast-align -Wnested-externs -Wshadow -Wstrict-prototypes -Wno-unused-function -Wno-long-long -Wno-overlength-strings -fvisibility=hidden
-CFLAGS_FOR_BUILD = -g -O2 $(am__append_4)
-CPP = gcc -E
-CPPFLAGS = 
-CPPFLAGS_FOR_BUILD =  $(am__append_3)
+CFLAGS = -pipe -O2  -W -std=c89 -pedantic -Wall -Wextra -Wcast-align -Wnested-externs -Wshadow -Wstrict-prototypes -Wno-unused-function -Wno-long-long -Wno-overlength-strings -fvisibility=hidden -O3
+CFLAGS_FOR_BUILD = -g -O2 $(am__append_9)
+CPP = x86_64-w64-mingw32-gcc -E
+CPPFLAGS = -I/home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/share/../include/ 
+CPPFLAGS_FOR_BUILD =  $(am__append_8)
 CPP_FOR_BUILD = gcc -E
-CRYPTO_CFLAGS = 
-CRYPTO_LIBS = -lcrypto
+CRYPTO_CFLAGS = -I/home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/include
+CRYPTO_LIBS = -L/home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/lib -lcrypto -lws2_32 -lgdi32 -lcrypt32
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-DLLTOOL = false
+DLLTOOL = x86_64-w64-mingw32-dlltool
 DSYMUTIL = 
 DUMPBIN = 
 ECHO_C = 
 ECHO_N = -n
 ECHO_T = 
 EGREP = /bin/grep -E
-EXEEXT = 
+EXEEXT = .exe
 FGREP = /bin/grep -F
 GREP = /bin/grep
 INSTALL = /usr/bin/install -c
@@ -572,8 +604,9 @@ INSTALL_DATA = ${INSTALL} -m 644
 INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-LD = /usr/bin/ld -m elf_x86_64
-LDFLAGS = 
+JNI_INCLUDES = 
+LD = /usr/bin/x86_64-w64-mingw32-ld
+LDFLAGS = -L/home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/share/../lib 
 LDFLAGS_FOR_BUILD = 
 LIBOBJS = 
 LIBS = 
@@ -585,9 +618,9 @@ LT_SYS_LIBRARY_PATH =
 MAKEINFO = ${SHELL} /home/ujstar/betcoin-master/src/secp256k1/build-aux/missing makeinfo
 MANIFEST_TOOL = :
 MKDIR_P = /bin/mkdir -p
-NM = /usr/bin/nm -B
+NM = x86_64-w64-mingw32-nm
 NMEDIT = 
-OBJDUMP = objdump
+OBJDUMP = x86_64-w64-mingw32-objdump
 OBJEXT = o
 OTOOL = 
 OTOOL64 = 
@@ -599,26 +632,27 @@ PACKAGE_TARNAME = libsecp256k1
 PACKAGE_URL = 
 PACKAGE_VERSION = 0.1
 PATH_SEPARATOR = :
-PKG_CONFIG = /usr/bin/pkg-config
-PKG_CONFIG_LIBDIR = 
-PKG_CONFIG_PATH = 
+PKG_CONFIG = /usr/bin/pkg-config --static
+PKG_CONFIG_LIBDIR = /home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/share/../lib/pkgconfig
+PKG_CONFIG_PATH = /home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/share/../share/pkgconfig
 PORT = 
-RANLIB = /usr/bin/ranlib
-SECP_INCLUDES =  
-SECP_LIBS =   -lgmp
-SECP_TEST_INCLUDES =  
-SECP_TEST_LIBS = -lcrypto
+RANLIB = /usr/bin/x86_64-w64-mingw32-ranlib
+SECP_INCLUDES = 
+SECP_LIBS = 
+SECP_TEST_INCLUDES =  -I/home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/include
+SECP_TEST_LIBS = -L/home/ujstar/betcoin-master/depends/x86_64-w64-mingw32/lib -lcrypto -lws2_32 -lgdi32 -lcrypt32 -lgdi32
 SED = /bin/sed
 SET_MAKE = 
 SHELL = /bin/bash
-STRIP = /usr/bin/strip
+STRIP = /usr/bin/x86_64-w64-mingw32-strip
 VERSION = 0.1
+_ACJNI_JAVAC = no
 abs_builddir = /home/ujstar/betcoin-master/src/secp256k1
 abs_srcdir = /home/ujstar/betcoin-master/src/secp256k1
 abs_top_builddir = /home/ujstar/betcoin-master/src/secp256k1
 abs_top_srcdir = /home/ujstar/betcoin-master/src/secp256k1
-ac_ct_AR = ar
-ac_ct_CC = gcc
+ac_ct_AR = 
+ac_ct_CC = 
 ac_ct_CC_FOR_BUILD = gcc
 ac_ct_DUMPBIN = 
 am__include = include
@@ -638,11 +672,11 @@ datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = x86_64-pc-linux-gnu
-host_alias = 
+host = x86_64-w64-mingw32
+host_alias = x86_64-w64-mingw32
 host_cpu = x86_64
-host_os = linux-gnu
-host_vendor = pc
+host_os = mingw32
+host_vendor = w64
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
@@ -655,7 +689,7 @@ mandir = ${datarootdir}/man
 mkdir_p = $(MKDIR_P)
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = /usr/local
+prefix = /
 program_transform_name = s,x,x,
 psdir = ${docdir}
 runstatedir = ${localstatedir}/run
@@ -669,58 +703,85 @@ top_builddir = .
 top_srcdir = .
 ACLOCAL_AMFLAGS = -I build-aux/m4
 lib_LTLIBRARIES = libsecp256k1.la
-include_HEADERS = include/secp256k1.h $(am__append_5) $(am__append_8) \
-	$(am__append_11)
+JNI_LIB = 
+#JNI_LIB = libsecp256k1_jni.la
+#noinst_LTLIBRARIES = $(COMMON_LIB)
+#noinst_LTLIBRARIES = $(JNI_LIB)
+include_HEADERS = include/secp256k1.h $(am__append_10) \
+	$(am__append_13)
 noinst_HEADERS = src/scalar.h src/scalar_4x64.h src/scalar_8x32.h \
-	src/scalar_impl.h src/scalar_4x64_impl.h \
-	src/scalar_8x32_impl.h src/group.h src/group_impl.h \
-	src/num_gmp.h src/num_gmp_impl.h src/ecdsa.h src/ecdsa_impl.h \
-	src/eckey.h src/eckey_impl.h src/ecmult.h src/ecmult_impl.h \
-	src/ecmult_const.h src/ecmult_const_impl.h src/ecmult_gen.h \
-	src/ecmult_gen_impl.h src/num.h src/num_impl.h \
-	src/field_10x26.h src/field_10x26_impl.h src/field_5x52.h \
-	src/field_5x52_impl.h src/field_5x52_int128_impl.h \
-	src/field_5x52_asm_impl.h \
-	src/java/org_bitcoin_NativeSecp256k1.h src/util.h \
+	src/scalar_low.h src/scalar_impl.h src/scalar_4x64_impl.h \
+	src/scalar_8x32_impl.h src/scalar_low_impl.h src/group.h \
+	src/group_impl.h src/num_gmp.h src/num_gmp_impl.h src/ecdsa.h \
+	src/ecdsa_impl.h src/eckey.h src/eckey_impl.h src/ecmult.h \
+	src/ecmult_impl.h src/ecmult_const.h src/ecmult_const_impl.h \
+	src/ecmult_gen.h src/ecmult_gen_impl.h src/num.h \
+	src/num_impl.h src/field_10x26.h src/field_10x26_impl.h \
+	src/field_5x52.h src/field_5x52_impl.h \
+	src/field_5x52_int128_impl.h src/field_5x52_asm_impl.h \
+	src/java/org_bitcoin_NativeSecp256k1.h \
+	src/java/org_bitcoin_Secp256k1Context.h src/util.h \
 	src/testrand.h src/testrand_impl.h src/hash.h src/hash_impl.h \
 	src/field.h src/field_impl.h src/bench.h \
 	contrib/lax_der_parsing.h contrib/lax_der_parsing.c \
 	contrib/lax_der_privatekey_parsing.h \
-	contrib/lax_der_privatekey_parsing.c $(am__append_6) \
-	$(am__append_9) $(am__append_12)
+	contrib/lax_der_privatekey_parsing.c $(am__append_11) \
+	$(am__append_14)
+COMMON_LIB = 
+#COMMON_LIB = libsecp256k1_common.la
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libsecp256k1.pc
+##libsecp256k1_common_la_SOURCES = src/asm/field_10x26_arm.s
 libsecp256k1_la_SOURCES = src/secp256k1.c
-libsecp256k1_la_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src $(SECP_INCLUDES)
-libsecp256k1_la_LIBADD = $(SECP_LIBS)
+libsecp256k1_la_CPPFLAGS = -DSECP256K1_BUILD -I$(top_srcdir)/include -I$(top_srcdir)/src $(SECP_INCLUDES)
+libsecp256k1_la_LIBADD = $(JNI_LIB) $(SECP_LIBS) $(COMMON_LIB)
+libsecp256k1_jni_la_SOURCES = src/java/org_bitcoin_NativeSecp256k1.c src/java/org_bitcoin_Secp256k1Context.c
+libsecp256k1_jni_la_CPPFLAGS = -DSECP256K1_BUILD $(JNI_INCLUDES)
 #bench_verify_SOURCES = src/bench_verify.c
-#bench_verify_LDADD = libsecp256k1.la $(SECP_LIBS) $(SECP_TEST_LIBS)
+#bench_verify_LDADD = libsecp256k1.la $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB)
 #bench_sign_SOURCES = src/bench_sign.c
-#bench_sign_LDADD = libsecp256k1.la $(SECP_LIBS) $(SECP_TEST_LIBS)
+#bench_sign_LDADD = libsecp256k1.la $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB)
 #bench_internal_SOURCES = src/bench_internal.c
-#bench_internal_LDADD = $(SECP_LIBS)
-#bench_internal_CPPFLAGS = $(SECP_INCLUDES)
+#bench_internal_LDADD = $(SECP_LIBS) $(COMMON_LIB)
+#bench_internal_CPPFLAGS = -DSECP256K1_BUILD $(SECP_INCLUDES)
 tests_SOURCES = src/tests.c
-tests_CPPFLAGS = -DVERIFY -I$(top_srcdir)/src -I$(top_srcdir)/include $(SECP_INCLUDES) $(SECP_TEST_INCLUDES)
-tests_LDADD = $(SECP_LIBS) $(SECP_TEST_LIBS)
+tests_CPPFLAGS = -DSECP256K1_BUILD -I$(top_srcdir)/src \
+	-I$(top_srcdir)/include $(SECP_INCLUDES) \
+	$(SECP_TEST_INCLUDES) $(am__append_3)
+tests_LDADD = $(SECP_LIBS) $(SECP_TEST_LIBS) $(COMMON_LIB)
 tests_LDFLAGS = -static
+exhaustive_tests_SOURCES = src/tests_exhaustive.c
+exhaustive_tests_CPPFLAGS =  \
+	-DSECP256K1_BUILD \
+	-I$(top_srcdir)/src \
+	$(SECP_INCLUDES) $(am__append_6)
+exhaustive_tests_LDADD = $(SECP_LIBS)
+exhaustive_tests_LDFLAGS = -static
+JAVAROOT = src/java
+JAVAORG = org/bitcoin
+JAVA_GUAVA = $(srcdir)/$(JAVAROOT)/guava/guava-18.0.jar
+CLASSPATH_ENV = CLASSPATH=$(JAVA_GUAVA)
+JAVA_FILES = \
+  $(JAVAROOT)/$(JAVAORG)/NativeSecp256k1.java \
+  $(JAVAROOT)/$(JAVAORG)/NativeSecp256k1Test.java \
+  $(JAVAROOT)/$(JAVAORG)/NativeSecp256k1Util.java \
+  $(JAVAROOT)/$(JAVAORG)/Secp256k1Context.java
+
 gen_context_OBJECTS = gen_context.o
 gen_context_BIN = gen_context$(BUILD_EXEEXT)
-CLEANFILES = $(gen_context_BIN) src/ecmult_static_context.h
-EXTRA_DIST = autogen.sh src/gen_context.c src/basic-config.h
+CLEANFILES = $(gen_context_BIN) src/ecmult_static_context.h $(JAVAROOT)/$(JAVAORG)/*.class .stamp-java
+EXTRA_DIST = autogen.sh src/gen_context.c src/basic-config.h $(JAVA_FILES)
 ##bench_ecdh_SOURCES = src/bench_ecdh.c
-##bench_ecdh_LDADD = libsecp256k1.la $(SECP_LIBS)
-##bench_schnorr_verify_SOURCES = src/bench_schnorr_verify.c
-##bench_schnorr_verify_LDADD = libsecp256k1.la $(SECP_LIBS)
+##bench_ecdh_LDADD = libsecp256k1.la $(SECP_LIBS) $(COMMON_LIB)
 #bench_recover_SOURCES = src/bench_recover.c
-#bench_recover_LDADD = libsecp256k1.la $(SECP_LIBS)
+#bench_recover_LDADD = libsecp256k1.la $(SECP_LIBS) $(COMMON_LIB)
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .c .lo .log .o .obj .test .test$(EXEEXT) .trs
+.SUFFIXES: .c .lo .log .o .obj .s .test .test$(EXEEXT) .trs
 am--refresh: Makefile
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/src/modules/ecdh/Makefile.am.include $(srcdir)/src/modules/schnorr/Makefile.am.include $(srcdir)/src/modules/recovery/Makefile.am.include $(am__configure_deps)
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(srcdir)/src/modules/ecdh/Makefile.am.include $(srcdir)/src/modules/recovery/Makefile.am.include $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -742,7 +803,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
 	esac;
-$(srcdir)/src/modules/ecdh/Makefile.am.include $(srcdir)/src/modules/schnorr/Makefile.am.include $(srcdir)/src/modules/recovery/Makefile.am.include $(am__empty):
+$(srcdir)/src/modules/ecdh/Makefile.am.include $(srcdir)/src/modules/recovery/Makefile.am.include $(am__empty):
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
@@ -804,6 +865,17 @@ clean-libLTLIBRARIES:
 	  echo rm -f $${locs}; \
 	  rm -f $${locs}; \
 	}
+
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; \
+	locs=`for p in $$list; do echo $$p; done | \
+	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
+	      sort -u`; \
+	test -z "$$locs" || { \
+	  echo rm -f $${locs}; \
+	  rm -f $${locs}; \
+	}
 src/$(am__dirstamp):
 	@$(MKDIR_P) src
 	@: > src/$(am__dirstamp)
@@ -815,6 +887,30 @@ src/libsecp256k1_la-secp256k1.lo: src/$(am__dirstamp) \
 
 libsecp256k1.la: $(libsecp256k1_la_OBJECTS) $(libsecp256k1_la_DEPENDENCIES) $(EXTRA_libsecp256k1_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(LINK) -rpath $(libdir) $(libsecp256k1_la_OBJECTS) $(libsecp256k1_la_LIBADD) $(LIBS)
+src/asm/$(am__dirstamp):
+	@$(MKDIR_P) src/asm
+	@: > src/asm/$(am__dirstamp)
+src/asm/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/asm/$(DEPDIR)
+	@: > src/asm/$(DEPDIR)/$(am__dirstamp)
+src/asm/field_10x26_arm.lo: src/asm/$(am__dirstamp) \
+	src/asm/$(DEPDIR)/$(am__dirstamp)
+
+libsecp256k1_common.la: $(libsecp256k1_common_la_OBJECTS) $(libsecp256k1_common_la_DEPENDENCIES) $(EXTRA_libsecp256k1_common_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(LINK) $(am_libsecp256k1_common_la_rpath) $(libsecp256k1_common_la_OBJECTS) $(libsecp256k1_common_la_LIBADD) $(LIBS)
+src/java/$(am__dirstamp):
+	@$(MKDIR_P) src/java
+	@: > src/java/$(am__dirstamp)
+src/java/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/java/$(DEPDIR)
+	@: > src/java/$(DEPDIR)/$(am__dirstamp)
+src/java/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.lo:  \
+	src/java/$(am__dirstamp) src/java/$(DEPDIR)/$(am__dirstamp)
+src/java/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.lo:  \
+	src/java/$(am__dirstamp) src/java/$(DEPDIR)/$(am__dirstamp)
+
+libsecp256k1_jni.la: $(libsecp256k1_jni_la_OBJECTS) $(libsecp256k1_jni_la_DEPENDENCIES) $(EXTRA_libsecp256k1_jni_la_DEPENDENCIES) 
+	$(AM_V_CCLD)$(LINK) $(am_libsecp256k1_jni_la_rpath) $(libsecp256k1_jni_la_OBJECTS) $(libsecp256k1_jni_la_LIBADD) $(LIBS)
 
 clean-noinstPROGRAMS:
 	@list='$(noinst_PROGRAMS)'; test -n "$$list" || exit 0; \
@@ -842,12 +938,6 @@ src/bench_recover.$(OBJEXT): src/$(am__dirstamp) \
 bench_recover$(EXEEXT): $(bench_recover_OBJECTS) $(bench_recover_DEPENDENCIES) $(EXTRA_bench_recover_DEPENDENCIES) 
 	@rm -f bench_recover$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(bench_recover_OBJECTS) $(bench_recover_LDADD) $(LIBS)
-src/bench_schnorr_verify.$(OBJEXT): src/$(am__dirstamp) \
-	src/$(DEPDIR)/$(am__dirstamp)
-
-bench_schnorr_verify$(EXEEXT): $(bench_schnorr_verify_OBJECTS) $(bench_schnorr_verify_DEPENDENCIES) $(EXTRA_bench_schnorr_verify_DEPENDENCIES) 
-	@rm -f bench_schnorr_verify$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(bench_schnorr_verify_OBJECTS) $(bench_schnorr_verify_LDADD) $(LIBS)
 src/bench_sign.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 
@@ -860,6 +950,12 @@ src/bench_verify.$(OBJEXT): src/$(am__dirstamp) \
 bench_verify$(EXEEXT): $(bench_verify_OBJECTS) $(bench_verify_DEPENDENCIES) $(EXTRA_bench_verify_DEPENDENCIES) 
 	@rm -f bench_verify$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(bench_verify_OBJECTS) $(bench_verify_LDADD) $(LIBS)
+src/exhaustive_tests-tests_exhaustive.$(OBJEXT): src/$(am__dirstamp) \
+	src/$(DEPDIR)/$(am__dirstamp)
+
+exhaustive_tests$(EXEEXT): $(exhaustive_tests_OBJECTS) $(exhaustive_tests_DEPENDENCIES) $(EXTRA_exhaustive_tests_DEPENDENCIES) 
+	@rm -f exhaustive_tests$(EXEEXT)
+	$(AM_V_CCLD)$(exhaustive_tests_LINK) $(exhaustive_tests_OBJECTS) $(exhaustive_tests_LDADD) $(LIBS)
 src/tests-tests.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 
@@ -871,6 +967,10 @@ mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f src/*.$(OBJEXT)
 	-rm -f src/*.lo
+	-rm -f src/asm/*.$(OBJEXT)
+	-rm -f src/asm/*.lo
+	-rm -f src/java/*.$(OBJEXT)
+	-rm -f src/java/*.lo
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -878,11 +978,13 @@ distclean-compile:
 include src/$(DEPDIR)/bench_ecdh.Po
 include src/$(DEPDIR)/bench_internal-bench_internal.Po
 include src/$(DEPDIR)/bench_recover.Po
-include src/$(DEPDIR)/bench_schnorr_verify.Po
 include src/$(DEPDIR)/bench_sign.Po
 include src/$(DEPDIR)/bench_verify.Po
+include src/$(DEPDIR)/exhaustive_tests-tests_exhaustive.Po
 include src/$(DEPDIR)/libsecp256k1_la-secp256k1.Plo
 include src/$(DEPDIR)/tests-tests.Po
+include src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.Plo
+include src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.Plo
 
 .c.o:
 	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -915,6 +1017,20 @@ src/libsecp256k1_la-secp256k1.lo: src/secp256k1.c
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsecp256k1_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/libsecp256k1_la-secp256k1.lo `test -f 'src/secp256k1.c' || echo '$(srcdir)/'`src/secp256k1.c
 
+src/java/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.lo: src/java/org_bitcoin_NativeSecp256k1.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsecp256k1_jni_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/java/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.lo -MD -MP -MF src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.Tpo -c -o src/java/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.lo `test -f 'src/java/org_bitcoin_NativeSecp256k1.c' || echo '$(srcdir)/'`src/java/org_bitcoin_NativeSecp256k1.c
+	$(AM_V_at)$(am__mv) src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.Tpo src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.Plo
+#	$(AM_V_CC)source='src/java/org_bitcoin_NativeSecp256k1.c' object='src/java/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.lo' libtool=yes \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsecp256k1_jni_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/java/libsecp256k1_jni_la-org_bitcoin_NativeSecp256k1.lo `test -f 'src/java/org_bitcoin_NativeSecp256k1.c' || echo '$(srcdir)/'`src/java/org_bitcoin_NativeSecp256k1.c
+
+src/java/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.lo: src/java/org_bitcoin_Secp256k1Context.c
+	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsecp256k1_jni_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/java/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.lo -MD -MP -MF src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.Tpo -c -o src/java/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.lo `test -f 'src/java/org_bitcoin_Secp256k1Context.c' || echo '$(srcdir)/'`src/java/org_bitcoin_Secp256k1Context.c
+	$(AM_V_at)$(am__mv) src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.Tpo src/java/$(DEPDIR)/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.Plo
+#	$(AM_V_CC)source='src/java/org_bitcoin_Secp256k1Context.c' object='src/java/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.lo' libtool=yes \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsecp256k1_jni_la_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/java/libsecp256k1_jni_la-org_bitcoin_Secp256k1Context.lo `test -f 'src/java/org_bitcoin_Secp256k1Context.c' || echo '$(srcdir)/'`src/java/org_bitcoin_Secp256k1Context.c
+
 src/bench_internal-bench_internal.o: src/bench_internal.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_internal_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/bench_internal-bench_internal.o -MD -MP -MF src/$(DEPDIR)/bench_internal-bench_internal.Tpo -c -o src/bench_internal-bench_internal.o `test -f 'src/bench_internal.c' || echo '$(srcdir)/'`src/bench_internal.c
 	$(AM_V_at)$(am__mv) src/$(DEPDIR)/bench_internal-bench_internal.Tpo src/$(DEPDIR)/bench_internal-bench_internal.Po
@@ -928,6 +1044,20 @@ src/bench_internal-bench_internal.obj: src/bench_internal.c
 #	$(AM_V_CC)source='src/bench_internal.c' object='src/bench_internal-bench_internal.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(bench_internal_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/bench_internal-bench_internal.obj `if test -f 'src/bench_internal.c'; then $(CYGPATH_W) 'src/bench_internal.c'; else $(CYGPATH_W) '$(srcdir)/src/bench_internal.c'; fi`
+
+src/exhaustive_tests-tests_exhaustive.o: src/tests_exhaustive.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(exhaustive_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/exhaustive_tests-tests_exhaustive.o -MD -MP -MF src/$(DEPDIR)/exhaustive_tests-tests_exhaustive.Tpo -c -o src/exhaustive_tests-tests_exhaustive.o `test -f 'src/tests_exhaustive.c' || echo '$(srcdir)/'`src/tests_exhaustive.c
+	$(AM_V_at)$(am__mv) src/$(DEPDIR)/exhaustive_tests-tests_exhaustive.Tpo src/$(DEPDIR)/exhaustive_tests-tests_exhaustive.Po
+#	$(AM_V_CC)source='src/tests_exhaustive.c' object='src/exhaustive_tests-tests_exhaustive.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(exhaustive_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/exhaustive_tests-tests_exhaustive.o `test -f 'src/tests_exhaustive.c' || echo '$(srcdir)/'`src/tests_exhaustive.c
+
+src/exhaustive_tests-tests_exhaustive.obj: src/tests_exhaustive.c
+	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(exhaustive_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/exhaustive_tests-tests_exhaustive.obj -MD -MP -MF src/$(DEPDIR)/exhaustive_tests-tests_exhaustive.Tpo -c -o src/exhaustive_tests-tests_exhaustive.obj `if test -f 'src/tests_exhaustive.c'; then $(CYGPATH_W) 'src/tests_exhaustive.c'; else $(CYGPATH_W) '$(srcdir)/src/tests_exhaustive.c'; fi`
+	$(AM_V_at)$(am__mv) src/$(DEPDIR)/exhaustive_tests-tests_exhaustive.Tpo src/$(DEPDIR)/exhaustive_tests-tests_exhaustive.Po
+#	$(AM_V_CC)source='src/tests_exhaustive.c' object='src/exhaustive_tests-tests_exhaustive.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(exhaustive_tests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/exhaustive_tests-tests_exhaustive.obj `if test -f 'src/tests_exhaustive.c'; then $(CYGPATH_W) 'src/tests_exhaustive.c'; else $(CYGPATH_W) '$(srcdir)/src/tests_exhaustive.c'; fi`
 
 src/tests-tests.o: src/tests.c
 	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT src/tests-tests.o -MD -MP -MF src/$(DEPDIR)/tests-tests.Tpo -c -o src/tests-tests.o `test -f 'src/tests.c' || echo '$(srcdir)/'`src/tests.c
@@ -943,12 +1073,23 @@ src/tests-tests.obj: src/tests.c
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(AM_V_CC_no)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(tests_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o src/tests-tests.obj `if test -f 'src/tests.c'; then $(CYGPATH_W) 'src/tests.c'; else $(CYGPATH_W) '$(srcdir)/src/tests.c'; fi`
 
+.s.o:
+	$(AM_V_CCAS)$(CCASCOMPILE) -c -o $@ $<
+
+.s.obj:
+	$(AM_V_CCAS)$(CCASCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+.s.lo:
+	$(AM_V_CCAS)$(LTCCASCOMPILE) -c -o $@ $<
+
 mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
 	-rm -rf .libs _libs
 	-rm -rf src/.libs src/_libs
+	-rm -rf src/asm/.libs src/asm/_libs
+	-rm -rf src/java/.libs src/java/_libs
 
 distclean-libtool:
 	-rm -f libtool config.lt
@@ -1202,6 +1343,13 @@ tests.log: tests$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
+exhaustive_tests.log: exhaustive_tests$(EXEEXT)
+	@p='exhaustive_tests$(EXEEXT)'; \
+	b='exhaustive_tests'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 .test.log:
 	@p='$<'; \
 	$(am__set_b); \
@@ -1209,13 +1357,13 @@ tests.log: tests$(EXEEXT)
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
 	"$$tst" $(AM_TESTS_FD_REDIRECT)
-#.test$(EXEEXT).log:
-#	@p='$<'; \
-#	$(am__set_b); \
-#	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
-#	--log-file $$b.log --trs-file $$b.trs \
-#	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
-#	"$$tst" $(AM_TESTS_FD_REDIRECT)
+.test$(EXEEXT).log:
+	@p='$<'; \
+	$(am__set_b); \
+	$(am__check_pre) $(TEST_LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_TEST_LOG_DRIVER_FLAGS) $(TEST_LOG_DRIVER_FLAGS) -- $(TEST_LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
 
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
@@ -1420,6 +1568,10 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f src/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/$(am__dirstamp)
+	-rm -f src/asm/$(DEPDIR)/$(am__dirstamp)
+	-rm -f src/asm/$(am__dirstamp)
+	-rm -f src/java/$(DEPDIR)/$(am__dirstamp)
+	-rm -f src/java/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -1427,11 +1579,11 @@ maintainer-clean-generic:
 clean: clean-am
 
 clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	clean-noinstPROGRAMS mostlyclean-am
+	clean-noinstLTLIBRARIES clean-noinstPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf src/$(DEPDIR)
+	-rm -rf src/$(DEPDIR) src/java/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -1479,7 +1631,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf src/$(DEPDIR)
+	-rm -rf src/$(DEPDIR) src/java/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -1503,26 +1655,40 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES \
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--refresh check check-TESTS \
 	check-am clean clean-cscope clean-generic clean-libLTLIBRARIES \
-	clean-libtool clean-noinstPROGRAMS cscope cscopelist-am ctags \
-	ctags-am dist dist-all dist-bzip2 dist-gzip dist-lzip \
-	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-compile distclean-generic distclean-hdr \
-	distclean-libtool distclean-tags distcleancheck distdir \
-	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-includeHEADERS install-info \
-	install-info-am install-libLTLIBRARIES install-man install-pdf \
-	install-pdf-am install-pkgconfigDATA install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am recheck tags tags-am uninstall \
-	uninstall-am uninstall-includeHEADERS uninstall-libLTLIBRARIES \
+	clean-libtool clean-noinstLTLIBRARIES clean-noinstPROGRAMS \
+	cscope cscopelist-am ctags ctags-am dist dist-all dist-bzip2 \
+	dist-gzip dist-lzip dist-shar dist-tarZ dist-xz dist-zip \
+	distcheck distclean distclean-compile distclean-generic \
+	distclean-hdr distclean-libtool distclean-tags distcleancheck \
+	distdir distuninstallcheck dvi dvi-am html html-am info \
+	info-am install install-am install-data install-data-am \
+	install-dvi install-dvi-am install-exec install-exec-am \
+	install-html install-html-am install-includeHEADERS \
+	install-info install-info-am install-libLTLIBRARIES \
+	install-man install-pdf install-pdf-am install-pkgconfigDATA \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	recheck tags tags-am uninstall uninstall-am \
+	uninstall-includeHEADERS uninstall-libLTLIBRARIES \
 	uninstall-pkgconfigDATA
 
 .PRECIOUS: Makefile
 
+
+#$(JAVA_GUAVA):
+#	@echo Guava is missing. Fetch it via: \
+#	wget https://search.maven.org/remotecontent?filepath=com/google/guava/guava/18.0/guava-18.0.jar -O $(@)
+#	@false
+
+#.stamp-java: $(JAVA_FILES)
+#	@echo   Compiling $^
+#	$(AM_V_at)$(CLASSPATH_ENV) javac $^
+#	@touch $@
+
+#check-java: libsecp256k1.la $(JAVA_GUAVA) .stamp-java
+#	$(AM_V_at)java -Djava.library.path="./:./src:./src/.libs:.libs/" -cp "$(JAVA_GUAVA):$(JAVAROOT)" $(JAVAORG)/NativeSecp256k1Test
 gen_%.o: src/gen_%.c
 	$(CC_FOR_BUILD) $(CPPFLAGS_FOR_BUILD) $(CFLAGS_FOR_BUILD) -c $< -o $@
 

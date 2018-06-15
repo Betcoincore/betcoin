@@ -1,0 +1,6 @@
+usr/local/bin/bet-qt usr/bin
+share/pixmaps/bet32.xpm usr/share/pixmaps
+share/pixmaps/bet16.xpm usr/share/pixmaps
+share/pixmaps/bet128.png usr/share/pixmaps
+debian/bet-qt.desktop usr/share/applications
+debian/bet-qt.protocol usr/share/kde4/services/
