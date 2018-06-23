@@ -56,7 +56,7 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    const char* pszTimestamp = "Bet! 25/06/2018";
+    const char* pszTimestamp = "Bet is good! 25/06/2018";
     const CScript genesisOutputScript = CScript() << ParseHex("04d51ad734f131b7b9395b0e71e37049f291feb4537a24dd83a485c3efcf1da188afd81e303baa62f6f23ec1feae7bfcde40e41f35cac68e75c3aa295e44ae7bbf") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }

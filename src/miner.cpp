@@ -283,7 +283,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         }
 
         // NOTE: unlike in bitcoin, we need to pass PREVIOUS block height here
-        CAmount blockReward = nFees + GetBlockSubsidy(pindexPrev->nBits, pindexPrev->nHeight, Params().GetConsensus());
+        CAmount blockReward = nFees;
 
         // Compute regular coinbase transaction.
         txNew.vout[0].nValue = blockReward;
@@ -482,10 +482,6 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
 
                         break;
                     }
-                    pblock->nNonce += 1;
-                    nHashesDone += 1;
-                    if ((pblock->nNonce & 0xFF) == 0)
-                        break;
                 }
 
                 // Check for stop or if block needs to be rebuilt
@@ -526,22 +522,4 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
 
 void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams, CConnman& connman)
 {
-    static boost::thread_group* minerThreads = NULL;
-
-    if (nThreads < 0)
-        nThreads = GetNumCores();
-
-    if (minerThreads != NULL)
-    {
-        minerThreads->interrupt_all();
-        delete minerThreads;
-        minerThreads = NULL;
-    }
-
-    if (nThreads == 0 || !fGenerate)
-        return;
-
-    minerThreads = new boost::thread_group();
-    for (int i = 0; i < nThreads; i++)
-        minerThreads->create_thread(boost::bind(&BitcoinMiner, boost::cref(chainparams), boost::ref(connman)));
 }
