@@ -9,8 +9,8 @@ sudo apt-get install libzmq3-dev
 
 mkdir /root/temp
 cd /root/temp
-wget https://github.com/betcoincore/betcoin/blob/master/ubuntu.tar.gz
-tar xvzf ubuntu.tar.gz
+wget https://raw.githubusercontent.com/betcoincore/betcoin/master/ubuntu.tar.gz
+tar -xvzf ubuntu.tar.gz
 sleep 15
 rm ubuntu.tar.gz
 
