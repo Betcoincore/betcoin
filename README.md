@@ -24,7 +24,7 @@ Block rewards
 -------------
 
 <table>
-<th>Block Height</th><th>Masternodes</th><th>Miner</th>
+<th>Block Height</th><th>pow</th><th>Masternodes</th>
 <tr><td>2 – 15 000</td><td>5 BET</td><td></td></tr>
 <tr><td>15 001 – 75 000</td><td>5 BET</td><td>52.5 BET</td></tr>
 <tr><td>75 001– 150 000</td><td>5 BET</td><td>75 BET</td></tr>
