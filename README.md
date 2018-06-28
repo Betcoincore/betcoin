@@ -34,7 +34,5 @@ Block rewards
 <tr><td>1 000 001– 1 500 000</td><td>5 BET</td><td>35 BET</td></tr>
 </table>
 
-* after block 1 500 001   POW 5 x 0.75 POW 5 Masternodes х 0,75
-* decrease all 
-* rewards by 25% every
-* 500 000 blocks
+* after block 1 500 001   POW 5 x 0.75 POW 5 Masternodes х 0.75
+* decrease all rewards by 25% every 500 000 blocks
