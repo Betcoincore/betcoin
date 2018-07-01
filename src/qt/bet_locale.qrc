@@ -1,0 +1,20 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/translations">
+        <file alias="bg">locale/bet_bg.qm</file>
+        <file alias="de">locale/bet_de.qm</file>
+        <file alias="en">locale/bet_en.qm</file>
+        <file alias="es">locale/bet_es.qm</file>
+        <file alias="fi">locale/bet_fi.qm</file>
+        <file alias="fr">locale/bet_fr.qm</file>
+        <file alias="it">locale/bet_it.qm</file>
+        <file alias="ja">locale/bet_ja.qm</file>
+        <file alias="pl">locale/bet_pl.qm</file>
+        <file alias="pt">locale/bet_pt.qm</file>
+        <file alias="ru">locale/bet_ru.qm</file>
+        <file alias="sk">locale/bet_sk.qm</file>
+        <file alias="sv">locale/bet_sv.qm</file>
+        <file alias="vi">locale/bet_vi.qm</file>
+        <file alias="zh_CN">locale/bet_zh_CN.qm</file>
+        <file alias="zh_TW">locale/bet_zh_TW.qm</file>
+    </qresource>
+</RCC>
