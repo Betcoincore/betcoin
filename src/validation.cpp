@@ -513,7 +513,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
                 return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
     }
 
-    return true;
+    return false;
 }
 
 bool ContextualCheckTransaction(const CTransaction& tx, CValidationState &state, CBlockIndex * const pindexPrev)
@@ -553,7 +553,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
 {
     AssertLockHeld(cs_main);
     if (pfMissingInputs)
-        *pfMissingInputs = false;
+        *pfMissingInputs = true;
 
     if (!CheckTransaction(tx, state) || !ContextualCheckTransaction(tx, state, chainActive.Tip()))
         return false;
@@ -1009,7 +1009,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     if(!fDryRun)
         GetMainSignals().SyncTransaction(tx, NULL);
 
-    return true;
+    return false;
 }
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
@@ -1025,7 +1025,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
     // After we've (potentially) uncached entries, ensure our coins cache is still within its size limits
     CValidationState stateDummy;
     FlushStateToDisk(stateDummy, FLUSH_STATE_PERIODIC);
-    return res;
+    return false;
 }
 
 bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, std::vector<uint256> &hashes)
@@ -1262,11 +1262,12 @@ CAmount GetBlockSubsidy(int nPrevBits, int nPrevHeight, const Consensus::Params&
     // CAmount nSuperblockPart = (nPrevHeight > consensusParams.nBudgetPaymentsStartBlock) ? nSubsidy/10 : 0;
 
     // return fSuperblockPartOnly ? nSuperblockPart : nSubsidy - nSuperblockPart;
-//  POW + MN
+// myfix POW + MN
     double dBase = 0;
     if (nPrevHeight < 1) {
         dBase = 1500000;
     }
+/*
     else if (nPrevHeight < 100) {//15000) {
         dBase = 5;
     }
@@ -1288,8 +1289,12 @@ CAmount GetBlockSubsidy(int nPrevBits, int nPrevHeight, const Consensus::Params&
     else if (nPrevHeight < 1500000) {
         dBase = 5 + 35;
     }
+*/
+    else if (nPrevHeight < 1500000) {
+	dBase = 5;
+    }
     else { //after 1500000, decrease 25% per 500000 block
-        dBase = 5 + 35;
+        dBase = 5;// + 35;
         for (int i = 0; i <= (nPrevHeight-1500000)/500000; i ++) {
             dBase -= dBase*0.25;
         }
@@ -1303,11 +1308,11 @@ CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
 {
     // return blockValue*0.6; // 60%
 
-    if(nHeight > 1500000)
-        return blockValue*0.5; // 50%
+//    if(nHeight > 1500000)
+//        return blockValue*0.5; // 50%
 
     double dBase = 0;
-    if (nHeight <= 100) { //15000) {
+    if (nHeight <= 15000) {
         dBase = 0;
     }
     else if (nHeight <= 75000) {
@@ -1327,6 +1332,12 @@ CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
     }
     else if (nHeight <= 1500000) {
         dBase = 35;
+    } 
+    else {
+	dBase = 35;
+	for (int i = 0; i < (nHeight-1500000)/500000; i++) {
+	    dBase -= dBase*0.25;
+	}
     }
     
     CAmount nSubsidy = dBase * COIN;
