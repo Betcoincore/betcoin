@@ -513,7 +513,7 @@ bool CheckTransaction(const CTransaction& tx, CValidationState &state)
                 return state.DoS(10, false, REJECT_INVALID, "bad-txns-prevout-null");
     }
 
-    return false;
+    return true;
 }
 
 bool ContextualCheckTransaction(const CTransaction& tx, CValidationState &state, CBlockIndex * const pindexPrev)
@@ -553,7 +553,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
 {
     AssertLockHeld(cs_main);
     if (pfMissingInputs)
-        *pfMissingInputs = true;
+        *pfMissingInputs = false;
 
     if (!CheckTransaction(tx, state) || !ContextualCheckTransaction(tx, state, chainActive.Tip()))
         return false;
@@ -1009,7 +1009,7 @@ bool AcceptToMemoryPoolWorker(CTxMemPool& pool, CValidationState &state, const C
     if(!fDryRun)
         GetMainSignals().SyncTransaction(tx, NULL);
 
-    return false;
+    return true;
 }
 
 bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransaction &tx, bool fLimitFree,
@@ -1025,7 +1025,7 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
     // After we've (potentially) uncached entries, ensure our coins cache is still within its size limits
     CValidationState stateDummy;
     FlushStateToDisk(stateDummy, FLUSH_STATE_PERIODIC);
-    return false;
+    return res;
 }
 
 bool GetTimestampIndex(const unsigned int &high, const unsigned int &low, std::vector<uint256> &hashes)
@@ -1230,71 +1230,15 @@ NOTE:   unlike bitcoin we are using PREVIOUS block height here,
 */
 CAmount GetBlockSubsidy(int nPrevBits, int nPrevHeight, const Consensus::Params& consensusParams, bool fSuperblockPartOnly)
 {
-    // double dDiff;
-    // CAmount nSubsidyBase;
-
-    // if (nPrevHeight <= 45 && Params().NetworkIDString() == CBaseChainParams::MAIN) {
-    //     /* a bug which caused diff to not be correctly calculated */
-    //     dDiff = (double)0x0000ffff / (double)(nPrevBits & 0x00ffffff);
-    // } else {
-    //     dDiff = ConvertBitsToDouble(nPrevBits);
-    // }
-
-    //   if (nPrevHeight < 1) {
-	// nSubsidyBase = 400000;
-    //   }
-    //   else if (nPrevHeight < 10000) {
-    //     nSubsidyBase = 1;
-    //   }
-    //   else { //after 60000 hardfork for new economical model
-    //     nSubsidyBase = 5;
-    //   }
-
-    // // LogPrintf("height %u diff %4.2f reward %d\n", nPrevHeight, dDiff, nSubsidyBase);
-    // CAmount nSubsidy = nSubsidyBase * COIN;
-
-    // // yearly decline of production by ~12% per year, projected ~33M coins max by year 2050+.
-    // for (int i = consensusParams.nSubsidyHalvingInterval; i <= nPrevHeight; i += consensusParams.nSubsidyHalvingInterval) {
-    //     nSubsidy -= nSubsidy*0.10;
-    // }
-
-    // // Hard fork to reduce the block reward by 10 extra percent (allowing budget/superblocks)
-    // CAmount nSuperblockPart = (nPrevHeight > consensusParams.nBudgetPaymentsStartBlock) ? nSubsidy/10 : 0;
-
-    // return fSuperblockPartOnly ? nSuperblockPart : nSubsidy - nSuperblockPart;
-// myfix POW + MN
     double dBase = 0;
     if (nPrevHeight < 1) {
         dBase = 1500000;
     }
-/*
-    else if (nPrevHeight < 100) {//15000) {
-        dBase = 5;
-    }
-    else if (nPrevHeight < 75000) {
-        dBase = 5 + 52.5;   
-    }
-    else if (nPrevHeight < 150000) {
-        dBase = 5 + 75;
-    }
-    else if (nPrevHeight < 500000) {
-        dBase = 5 + 100;
-    }
-    else if (nPrevHeight < 750000) {
-        dBase = 5 + 75;
-    }
-    else if (nPrevHeight < 1000000) {
-        dBase = 5 + 52.5;
-    }
-    else if (nPrevHeight < 1500000) {
-        dBase = 5 + 35;
-    }
-*/
     else if (nPrevHeight < 1500000) {
 	dBase = 5;
     }
-    else { //after 1500000, decrease 25% per 500000 block
-        dBase = 5;// + 35;
+    else { 
+        dBase = 5;
         for (int i = 0; i <= (nPrevHeight-1500000)/500000; i ++) {
             dBase -= dBase*0.25;
         }
@@ -1306,11 +1250,6 @@ CAmount GetBlockSubsidy(int nPrevBits, int nPrevHeight, const Consensus::Params&
 
 CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
 {
-    // return blockValue*0.6; // 60%
-
-//    if(nHeight > 1500000)
-//        return blockValue*0.5; // 50%
-
     double dBase = 0;
     if (nHeight <= 15000) {
         dBase = 0;
