@@ -52,8 +52,8 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
  */
 static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward)
 {
-    const char* pszTimestamp = "Bet! 1/07/2018";
-    const CScript genesisOutputScript = CScript() << ParseHex("05d51ad734f131b7b9395b0e71e37049f291feb4537a24dd83a485c3efcf1da188afd81e303baa62f6f23ec1feae7bfcde40e41f35cac68e75c3aa295e44ae7bbf") << OP_CHECKSIG;
+    const char* pszTimestamp = "Bet! 01/07/2018";
+    const CScript genesisOutputScript = CScript() << ParseHex("04d51ad734f131b7b9395b0e71e37049f291feb4537a24dd83a485c3efcf1da188afd81e303baa62f6f23ec1feae7bfcde40e41f35cac68e75c3aa295e44ae7bbf") << OP_CHECKSIG;
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward);
 }
 
@@ -73,16 +73,16 @@ class CMainParams : public CChainParams {
 public:
     CMainParams() {
         strNetworkID = "main";
-        consensus.nSubsidyHalvingInterval = 0; // every 0.5 year -10% 
+        consensus.nSubsidyHalvingInterval = 262800; // every 0.5 year -10% 
         consensus.nMasternodePaymentsStartBlock = 15000;// not true, but it's ok as long as it's less then nMasternodePaymentsIncreaseBlock
-        consensus.nMasternodePaymentsIncreaseBlock = 0; 
+        consensus.nMasternodePaymentsIncreaseBlock = 158000; // actual historical value
         consensus.nMasternodePaymentsIncreasePeriod = 576*30; // 17280 - actual historical value
         consensus.nInstantSendKeepLock = 24;
         consensus.nBudgetPaymentsStartBlock = 2100000000; // year 10000+
         consensus.nBudgetPaymentsCycleBlocks = 16616; // ~(60*24*30)/2.6, actual number of blocks per month is 200700 / 12 = 16725
         consensus.nBudgetPaymentsWindowBlocks = 100;
         consensus.nBudgetProposalEstablishingTime = 60*60*24;
-        consensus.nSuperblockStartBlock = 15000; // year 10000+
+        consensus.nSuperblockStartBlock = 2100000000; // year 10000+
         consensus.nSuperblockCycle = 16616; // ~(60*24*30)/2.6, actual number of blocks per month is 200700 / 12 = 16725
         consensus.nGovernanceMinQuorum = 10;
         consensus.nGovernanceFilterElements = 20000;
@@ -94,14 +94,14 @@ public:
         consensus.BIP34Hash = uint256S("0x00000ee2043a54893696224ea3892e0ecd0bf8dbf8fa33b224e4f7de41d219d1");
         consensus.powLimit = uint256S("00000fffff000000000000000000000000000000000000000000000000000000");
         consensus.nPowTargetTimespan = 10 * 60;//1 * 60 * 60; 
-        consensus.nPowTargetSpacing = 1 * 60; 
+        consensus.nPowTargetSpacing = 1 * 60; // Bet: 1 minutes
         consensus.fPowAllowMinDifficultyBlocks = false;
         consensus.fPowNoRetargeting = false;
         consensus.nRuleChangeActivationThreshold = 1916; // 95% of 2016
         consensus.nMinerConfirmationWindow = 2016; // nPowTargetTimespan / nPowTargetSpacing
         consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].bit = 28;
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1527265677; // January 1, 2008
-        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1527365155; // December 31, 2008
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nStartTime = 1199145601; // January 1, 2008
+        consensus.vDeployments[Consensus::DEPLOYMENT_TESTDUMMY].nTimeout = 1230767999; // December 31, 2008
 
         // Deployment of BIP68, BIP112, and BIP113.
         consensus.vDeployments[Consensus::DEPLOYMENT_CSV].bit = 0;
@@ -131,17 +131,17 @@ public:
         pchMessageStart[2] = 0x22;
         pchMessageStart[3] = 0x21;
         vAlertPubKey = ParseHex("046f4ee163561251d2a1b25293fc20d13bc3abeacb6cdae06bcd2245ef8001c410fbc13834a8fccc16af5a956d110f8287f5944f6055c566de5d0527e55b527032");
-        nDefaultPort = 25004; 
-        nMaxTipAge = 24 * 60 * 60; // ~144 blocks behind -> 2 x fork detection time, was 24 * 60 * 60 in bitcoin
+        nDefaultPort = 25011; 
+        nMaxTipAge = 6 * 60 * 60; // ~144 blocks behind -> 2 x fork detection time, was 24 * 60 * 60 in bitcoin
         nDelayGetHeadersTime = 24 * 60 * 60;
         nPruneAfterHeight = 100000;
 
-        genesis = CreateGenesisBlock(1527265155, 3428150, 0x1e0ffff0, 1, 10 * COIN);
+        genesis = CreateGenesisBlock(1530498549, 657999, 0x1e0ffff0, 1, 10 * COIN);
 
         consensus.hashGenesisBlock = genesis.GetHash();
 
-        assert(consensus.hashGenesisBlock == uint256S("0x00000e7576b194e19e63f59d911097a88113d70906b25f200b2380b76dc777d1"));
-        assert(genesis.hashMerkleRoot == uint256S("0xd48e4020cf0d9c71a183f0b282227d6f69325b1a2e47c818cdd2c2ab09e9d3e2"));
+        assert(consensus.hashGenesisBlock == uint256S("0x00000d97acbb9f680ddec62b168499df4f6e10032847ffa19c23dee38e1a3943"));
+        assert(genesis.hashMerkleRoot == uint256S("0xb83be3522be42359e492b23327ed5ab18fe2b8d678e1f8cf7d89e0ae43971eb3"));
 
 
         vSeeds.push_back(CDNSSeedData("node 1", "45.32.154.146"));
@@ -177,10 +177,11 @@ public:
 
         checkpointData = (CCheckpointData) {
             boost::assign::map_list_of // genesis hash
-            (     0, uint256S("0x00000e7576b194e19e63f59d911097a88113d70906b25f200b2380b76dc777d1")),
-            1527265155, 
-            0,   
-            3000        
+            (     0, uint256S("0x00000d97acbb9f680ddec62b168499df4f6e10032847ffa19c23dee38e1a3943")),
+            1530498549, // * UNIX timestamp of last checkpoint block
+            0,    // * total number of transactions between genesis and last checkpoint
+                        //   (the tx=... number in the SetBestChain debug.log lines)
+            3000        // * estimated number of transactions per day after checkpoint
         };
     }
 };
@@ -246,7 +247,7 @@ public:
         pchMessageStart[2] = 0xc1;
         pchMessageStart[3] = 0xd1;
         vAlertPubKey = ParseHex("0479e8f8625dcd69501497fb7b4c4fc47b371580211bfe3019362ff37d24842b8dacec94712be86bc1b9fe469b6258280149a461439ef805d6b157e0772100d984"); // test
-        nDefaultPort = 25006;
+        nDefaultPort = 25006; 
         nMaxTipAge = 0x7fffffff; // allow mining on top of old blocks for testnet
         nDelayGetHeadersTime = 24 * 60 * 60;
         nPruneAfterHeight = 1000;
@@ -254,15 +255,11 @@ public:
         genesis = CreateGenesisBlock(1522672501, 1894128, 0x1e0ffff0, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
 
-        //printf("genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str()); //Genesis block hash
-
         assert(consensus.hashGenesisBlock == uint256S("0x000002f0e31e3904f28c8bff84f1f4cf7f0be1dc68200663a95dd504a60ae5bd"));
         assert(genesis.hashMerkleRoot == uint256S("0x21f20bb7ce982591b1a420b31601ab9a715e3d8aedb9bdc9f468c7f14074aeaa"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
-        //vSeeds.push_back(CDNSSeedData("betdot.io",  "testnet-seed.betdot.io"));
-        //vSeeds.push_back(CDNSSeedData("masternode.io", "test.dnsseed.masternode.io"));
 
         // Testnet Bet addresses start with 't'
         base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,127);
@@ -302,8 +299,7 @@ public:
 
     }
 };
-
-static CTestNetParams testNetParams;
+//static CTestNetParams testNetParams; 
 
 /**
  * Regression test
@@ -357,17 +353,15 @@ public:
         pchMessageStart[0] = 0x1a;
         pchMessageStart[1] = 0xaa;
         pchMessageStart[2] = 0x3a;
-        pchMessageStart[3] = 0xc1;
+        pchMessageStart[3] = 0xca;
         nMaxTipAge = 6 * 60 * 60; // ~144 blocks behind -> 2 x fork detection time, was 24 * 60 * 60 in bitcoin
         nDelayGetHeadersTime = 0; // never delay GETHEADERS in regtests
-        nDefaultPort = 25008;
+        nDefaultPort = 25008; 
         nPruneAfterHeight = 1000;
 
         genesis = CreateGenesisBlock(1522672502, 1, 0x207fffff, 1, 50 * COIN);
         consensus.hashGenesisBlock = genesis.GetHash();
 
-
-        //printf("genesis.GetHash = %s\n", genesis.GetHash().ToString().c_str()); //Genesis block hash
 
         assert(consensus.hashGenesisBlock == uint256S("0x51741ded2bb94dc39e661c6aa7ee4af9782f8c4a5e5c7e1a8d1985dd47c18043"));
         assert(genesis.hashMerkleRoot == uint256S("0x21f20bb7ce982591b1a420b31601ab9a715e3d8aedb9bdc9f468c7f14074aeaa"));
@@ -405,8 +399,7 @@ public:
         nExtCoinType = 1;
    }
 };
-
-static CRegTestParams regTestParams;
+//static CRegTestParams regTestParams; 
 
 static CChainParams *pCurrentParams = 0;
 
@@ -417,12 +410,9 @@ const CChainParams &Params() {
 
 CChainParams& Params(const std::string& chain)
 {
+    return mainParams;
     if (chain == CBaseChainParams::MAIN)
             return mainParams;
-    else if (chain == CBaseChainParams::TESTNET)
-            return testNetParams;
-    else if (chain == CBaseChainParams::REGTEST)
-            return regTestParams;
     else
         throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
 }

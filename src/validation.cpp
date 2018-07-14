@@ -1237,7 +1237,7 @@ CAmount GetBlockSubsidy(int nPrevBits, int nPrevHeight, const Consensus::Params&
     else if (nPrevHeight < 1500000) {
 	dBase = 5;
     }
-    else { 
+    else { //after 1500000, decrease 25% per 500000 block
         dBase = 5;
         for (int i = 0; i <= (nPrevHeight-1500000)/500000; i ++) {
             dBase -= dBase*0.25;
@@ -1273,10 +1273,10 @@ CAmount GetMasternodePayment(int nHeight, CAmount blockValue)
         dBase = 35;
     } 
     else {
-	dBase = 35;
-	for (int i = 0; i < (nHeight-1500000)/500000; i++) {
-	    dBase -= dBase*0.25;
-	}
+        dBase = 35;
+        for (int i = 0; i < (nHeight-1500000)/500000; i++) {
+            dBase -= dBase*0.25;
+        }
     }
     
     CAmount nSubsidy = dBase * COIN;

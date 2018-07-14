@@ -32,7 +32,7 @@ class CBaseMainParams : public CBaseChainParams
 public:
     CBaseMainParams()
     {
-        nRPCPort = 25005; //  for main rpcport
+        nRPCPort = 25012;
     }
 };
 static CBaseMainParams mainParams;
@@ -45,7 +45,7 @@ class CBaseTestNetParams : public CBaseChainParams
 public:
     CBaseTestNetParams()
     {
-        nRPCPort = 25007; //  for testnet rpcport
+        nRPCPort = 25007;
         strDataDir = "testnet3";
     }
 };
@@ -92,7 +92,6 @@ void SelectBaseParams(const std::string& chain)
 
 std::string ChainNameFromCommandLine()
 {
-    // for only mainparam
     return CBaseChainParams::MAIN;
 
     bool fRegTest = GetBoolArg("-regtest", false);

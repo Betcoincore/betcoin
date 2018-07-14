@@ -283,7 +283,7 @@ CBlockTemplate* CreateNewBlock(const CChainParams& chainparams, const CScript& s
         }
 
         // NOTE: unlike in bitcoin, we need to pass PREVIOUS block height here
-        CAmount blockReward = nFees;
+        CAmount blockReward = nFees + GetBlockSubsidy(pindexPrev->nBits, pindexPrev->nHeight, Params().GetConsensus());
 
         // Compute regular coinbase transaction.
         txNew.vout[0].nValue = blockReward;
@@ -403,6 +403,7 @@ static bool ProcessBlockFound(const CBlock* pblock, const CChainParams& chainpar
 void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
 {
     LogPrintf("BetMiner -- started\n");
+    printf("BetMiner --- started\n");
     SetThreadPriority(THREAD_PRIORITY_LOWEST);
     RenameThread("bet-miner");
 
@@ -419,17 +420,7 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
             throw std::runtime_error("No coinbase script available (mining requires a wallet)");
 
         while (true) {
-            
-            if (chainparams.MiningRequiresPeers()) {
-                // Busy-wait for the network to come online so we don't waste time mining
-                // on an obsolete chain. In regtest mode we expect to fly solo.
-                do {
-                    bool fvNodesEmpty = connman.GetNodeCount(CConnman::CONNECTIONS_ALL) == 0;
-                    if (!fvNodesEmpty && !IsInitialBlockDownload() && masternodeSync.IsSynced())
-                        break;
-                    MilliSleep(1000);
-                } while (true);
-            }
+    	    MilliSleep(60000);
 
             //
             // Create new block
@@ -478,17 +469,45 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
                             throw boost::thread_interrupted();
                         break;
                     }
+                    pblock->nNonce += 1;
+                    nHashesDone += 1;
+                    if ((pblock->nNonce & 0xFF) == 0)
+                        break;
+                }
+
+                // Check for stop or if block needs to be rebuilt
+                boost::this_thread::interruption_point();
+                // Regtest mode doesn't require peers
+                if (connman.GetNodeCount(CConnman::CONNECTIONS_ALL) == 0 && chainparams.MiningRequiresPeers())
+                    break;
+                if (pblock->nNonce >= 0xffff0000)
+                    break;
+                if (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 60)
+                    break;
+                if (pindexPrev != chainActive.Tip())
+                    break;
+
+                // Update nTime every few seconds
+                if (UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev) < 0)
+                    break; // Recreate the block if the clock has run backwards,
+                           // so that we can use the correct time.
+                if (chainparams.GetConsensus().fPowAllowMinDifficultyBlocks)
+                {
+                    // Changing pblock->nTime can change work required on testnet:
+                    hashTarget.SetCompact(pblock->nBits);
                 }
             }
         }
     }
     catch (const boost::thread_interrupted&)
     {
+	printf("BetMiner -- terminated\n");
         LogPrintf("BetMiner -- terminated\n");
         throw;
     }
     catch (const std::runtime_error &e)
     {
+	printf("BetMiner -- runtime error: %s\n", e.what());
         LogPrintf("BetMiner -- runtime error: %s\n", e.what());
         return;
     }
@@ -496,4 +515,22 @@ void static BitcoinMiner(const CChainParams& chainparams, CConnman& connman)
 
 void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams, CConnman& connman)
 {
+    static boost::thread_group* minerThreads = NULL;
+
+    if (nThreads < 0)
+        nThreads = GetNumCores();
+
+    if (minerThreads != NULL)
+    {
+        minerThreads->interrupt_all();
+        delete minerThreads;
+        minerThreads = NULL;
+    }
+
+    if (nThreads == 0 || !fGenerate)
+        return;
+
+    minerThreads = new boost::thread_group();
+    for (int i = 0; i < nThreads; i++)
+        minerThreads->create_thread(boost::bind(&BitcoinMiner, boost::cref(chainparams), boost::ref(connman)));
 }

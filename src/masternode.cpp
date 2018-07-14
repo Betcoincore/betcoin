@@ -128,7 +128,7 @@ CMasternode::CollateralStatus CMasternode::CheckCollateral(const COutPoint& outp
         return COLLATERAL_UTXO_NOT_FOUND;
     }
 
-    if(coins.vout[outpoint.n].nValue != 50000 * COIN) { //  for masternode required
+    if(coins.vout[outpoint.n].nValue != 50000 * COIN) { 
         return COLLATERAL_INVALID_AMOUNT;
     }
 
@@ -264,7 +264,7 @@ bool CMasternode::IsInputAssociatedWithPubkey()
     uint256 hash;
     if(GetTransaction(vin.prevout.hash, tx, Params().GetConsensus(), hash, true)) {
         BOOST_FOREACH(CTxOut out, tx.vout)
-            if(out.nValue == 50000*COIN && out.scriptPubKey == payee) return true;//  for masternode required
+            if(out.nValue == 50000*COIN && out.scriptPubKey == payee) return true;
     }
 
     return false;
@@ -570,7 +570,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
         }
 
         if (err == COLLATERAL_INVALID_AMOUNT) {
-            LogPrint("masternode", "CMasternodeBroadcast::CheckOutpoint -- Masternode UTXO should have 50000 BET, masternode=%s\n", vin.prevout.ToStringShort());//  for masternode required
+            LogPrint("masternode", "CMasternodeBroadcast::CheckOutpoint -- Masternode UTXO should have 50000 BET, masternode=%s\n", vin.prevout.ToStringShort());
             return false;
         }
 
@@ -596,7 +596,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
     }
 
     // verify that sig time is legit in past
-    // should be at least not earlier than block when 50000 BET tx got nMasternodeMinimumConfirmations//  for masternode required
+    // should be at least not earlier than block when 50000 BET tx got nMasternodeMinimumConfirmations
     uint256 hashBlock = uint256();
     CTransaction tx2;
     GetTransaction(vin.prevout.hash, tx2, Params().GetConsensus(), hashBlock, true);
@@ -604,7 +604,7 @@ bool CMasternodeBroadcast::CheckOutpoint(int& nDos)
         LOCK(cs_main);
         BlockMap::iterator mi = mapBlockIndex.find(hashBlock);
         if (mi != mapBlockIndex.end() && (*mi).second) {
-            CBlockIndex* pMNIndex = (*mi).second; // block for 50000 BET tx -> 1 confirmation//  for masternode required
+            CBlockIndex* pMNIndex = (*mi).second; // block for 50000 BET tx -> 1 confirmation
             CBlockIndex* pConfIndex = chainActive[pMNIndex->nHeight + Params().GetConsensus().nMasternodeMinimumConfirmations - 1]; // block where tx got nMasternodeMinimumConfirmations
             if(pConfIndex->GetBlockTime() > sigTime) {
                 LogPrintf("CMasternodeBroadcast::CheckOutpoint -- Bad sigTime %d (%d conf block is at %d) for Masternode %s %s\n",

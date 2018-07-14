@@ -285,7 +285,7 @@ void CMasternodePayments::FillBlockPayee(CMutableTransaction& txNew, int nBlockH
     CAmount masternodePayment = GetMasternodePayment(nBlockHeight, blockReward);
 
     // split reward between miner ...
-    txNew.vout[0].nValue -= masternodePayment;
+    //txNew.vout[0].nValue -= masternodePayment;
     // ... and masternode
     txoutMasternodeRet = CTxOut(masternodePayment, payee);
     txNew.vout.push_back(txoutMasternodeRet);
